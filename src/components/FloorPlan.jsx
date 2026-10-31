@@ -1,5 +1,5 @@
-import React from 'react';
 import floorPlanImg from '../assets/floor_plan.webp';
+import { resolveAssetUrl } from '../admin/api';
 
 export default function FloorPlan({ data, onOpenModal, projectTitle = 'Arban City Sector 0' }) {
   const floorPlans = Array.isArray(data) ? data : [];
@@ -27,14 +27,14 @@ export default function FloorPlan({ data, onOpenModal, projectTitle = 'Arban Cit
             >
               <div className="relative aspect-[4/3] bg-slate-50 flex items-center justify-center p-3 overflow-hidden">
                 <img
-                  src={image}
+                  src={resolveAssetUrl(image)}
                   alt={`${unitType} Floor Plan`}
                   data-caption={`${unitType} Floor Plan`}
-                  className="w-full h-full object-contain filter blur-[1px] group-hover:blur-0 transition-all duration-300"
+                  className="w-full h-full object-contain transition-all duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-                  <span className="bg-[#8f7635] text-white text-xs font-bold px-3 py-1.5 rounded shadow">
-                    Unlock Plan
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                  <span className="bg-[#111D46] text-white text-xs font-bold px-3 py-1.5 rounded shadow">
+                    View Plan
                   </span>
                 </div>
               </div>

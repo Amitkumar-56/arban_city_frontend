@@ -1,21 +1,38 @@
-import React, { useState } from 'react';
-import { Plus, Minus, ChevronLeft, ChevronRight, User, Phone, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Minus, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import constructionImg from '../assets/construction.webp';
 import { submitLead } from '../admin/api';
+import CountryCodeSelect from './CountryCodeSelect';
 
 export default function BottomGrid({ data }) {
   const [openFaq, setOpenFaq] = useState(null);
 
   const faqs = Array.isArray(data?.faqs) ? data.faqs : [];
 
-  const [formData, setFormData] = useState({ fullName: '', phone: '', email: '' });
+  const [formData, setFormData] = useState({ fullName: '', phone: '' });
+  const [countryCode, setCountryCode] = useState('+91');
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    const countryDigits = countryCode.replace(/\D/g, '');
+    if (phoneDigits.length < 4 || phoneDigits.length + countryDigits.length > 15) {
+      alert('Please enter a valid mobile number.');
+      return;
+    }
+
     try {
-      await submitLead({ ...formData, source: 'Contact Form' });
-    } catch (err) {}
+      await submitLead({
+        ...formData,
+        phone: `${countryCode.replace(/\s/g, '')}${phoneDigits}`,
+        source: 'Contact Form',
+      });
+    } catch (err) {
+      console.error('Contact form submission failed:', err);
+      alert('Unable to submit your enquiry. Please try again.');
+      return;
+    }
     setSubmitted(true);
   };
 
@@ -86,29 +103,21 @@ export default function BottomGrid({ data }) {
                 />
               </div>
 
-              <div className="relative flex">
-                <span className="inline-flex items-center gap-1 px-2.5 text-xs font-bold text-gray-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-xl shrink-0">
-                  <Phone size={14} />
-                  +91
-                </span>
+              <div className="relative flex gap-1">
+                <CountryCodeSelect
+                  value={countryCode}
+                  onChange={setCountryCode}
+                  className="w-[118px] min-w-0 px-1 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-300 rounded-l-xl"
+                />
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={15}
                   required
                   placeholder="Mobile Number"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                   className="w-full px-3 py-2.5 text-sm font-medium border border-gray-300 rounded-r-xl focus:outline-none focus:border-[#e2572b] min-w-0"
-                />
-              </div>
-
-              <div className="relative">
-                <Mail size={16} className="absolute left-3 top-3 text-gray-400 shrink-0" />
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus:border-[#e2572b]"
                 />
               </div>
 

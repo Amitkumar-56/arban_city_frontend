@@ -1,150 +1,284 @@
-import React, { useState } from 'react';
-import { Menu, X, User } from 'lucide-react';
-import brandLogo from '../assets/logo.webp';
-import partnerLogoImg from '../assets/partner_logo.webp';
+import { useState, useEffect } from 'react';
+import PartnerLogo from './PartnerLogo';
+import { resolveAssetUrl } from '../admin/api';
 
-export default function Navbar({ data, onOpenModal }) {
+const NAV_LINKS = [
+  { id: 'home', label: 'Home', shortLabel: 'Home', href: '#home' },
+  { id: 'about', label: 'About', shortLabel: 'About', href: '#about' },
+  { id: 'overview', label: 'Overview', shortLabel: 'Overview', href: '#overview' },
+  { id: 'price', label: 'Configuration & Price', shortLabel: 'Price', href: '#price' },
+  { id: 'floor-plan', label: 'Floor Plan', shortLabel: 'Floor Plan', href: '#floor-plan' },
+  { id: 'elevation', label: 'Elevation Images', shortLabel: 'Elevation', href: '#elevation' },
+  { id: 'gallery', label: 'Gallery', shortLabel: 'Gallery', href: '#gallery' },
+  { id: 'video', label: 'Video', shortLabel: 'Video', href: '#video' },
+  { id: 'location', label: 'Location', shortLabel: 'Location', href: '#location' },
+];
+
+export default function Navbar({ data }) {
+  const [activeSection, setActiveSection] = useState('home');
+  const [activeQuickTab, setActiveQuickTab] = useState('price');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [failedLogoImage, setFailedLogoImage] = useState('');
+  const [failedPartnerLogo, setFailedPartnerLogo] = useState('');
 
-  const logoType = data?.logo_type || data?.logoType || 'image';
-  const logoText = data?.logo_text || data?.logoPart1 || 'Kohinoor';
-  const logoHighlight = data?.logo_highlight || data?.logoPart2 || 'Central Park';
-  const logoImage = data?.logo_image || data?.logoImage || '';
-  const partnerBadge = data?.partner_badge || data?.partnerBadge || 'DigiPACE';
-  const partnerLogo = data?.partner_logo || '';
-  const whatsappNumber = data?.whatsapp || '919228170794';
+  const logoType = data?.logo_type || 'text';
+  const logoImage = data?.logo_image;
+  const titlePart1 = data?.logo_text || data?.title_part1 || 'Arban';
+  const titlePart2 = data?.logo_highlight || data?.title_part2 || 'City';
+  const subtitle = data?.subtitle || 'SECTOR ZERO';
 
-  const navLinks = [
-    { name: 'Floor Plan', href: '#floor-plan' },
-    { name: 'Price', href: '#price' },
-    { name: 'Amenities', href: '#amenities' },
-    { name: 'Elevation Images', href: '#gallery' },
-    { name: 'Video', href: '#video' },
-    { name: 'About', href: '#about' },
-    { name: 'Overview', href: '#overview' },
-    { name: 'Location', href: '#location' },
-    { name: 'Developer', href: '#developer' },
-    { name: 'Contact', href: '#contact' },
+  // Mobile links kept completely intact
+  // Mobile Menu Rows - exactly matching reference design layout
+  const mobileMenuRows = [
+    [
+      { href: '#home', label: 'Home' },
+      { href: '#about', label: 'About' },
+    ],
+    [
+      { href: '#overview', label: 'Overview' },
+      { href: '#price', label: 'Configuration & Price' },
+    ],
+    [
+      { href: '#elevation', label: 'Elevation' },
+      { href: '#amenities', label: 'Amenities' },
+    ],
+    [
+      { href: '#video', label: 'Video' },
+      { href: '#gallery', label: 'Gallery' },
+    ],
+    [
+      { href: '#location', label: 'Location' },
+      { href: '#sales-office', label: 'Sales Office' },
+    ],
+    [
+      { href: '#developer', label: 'Developer' },
+      { href: '#faq', label: 'FAQs' },
+    ],
+    [
+      { href: '#construction', label: 'Construction' },
+    ],
   ];
 
+  const handleMobileNavClick = (e, href) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const targetId = href.replace('#', '');
+    const el = document.getElementById(targetId);
+    if (el) {
+      const topOffset = el.getBoundingClientRect().top + window.pageYOffset - 120;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    }
+  };
+
+  const handleQuickTabClick = (e, tabId) => {
+    e.preventDefault();
+    setActiveQuickTab(tabId);
+    const el = document.getElementById(tabId);
+    if (el) {
+      const topOffset = el.getBoundingClientRect().top + window.pageYOffset - 120;
+      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 120;
+      for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(NAV_LINKS[i].id);
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveSection(NAV_LINKS[i].id);
+          break;
+        }
+      }
+
+      const quickTargets = ['floor-plan', 'price', 'gallery'];
+      for (let i = quickTargets.length - 1; i >= 0; i--) {
+        const el = document.getElementById(quickTargets[i]);
+        if (el && el.offsetTop - 140 <= window.scrollY) {
+          setActiveQuickTab(quickTargets[i]);
+          break;
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-xs">
-      <div className="w-full px-3 sm:px-5 lg:px-6">
-        <div className="flex items-center justify-between h-18">
-          {/* Brand & Partner Logo matching Kohinoor Central Park */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <a href="#" className="flex items-center gap-2 group shrink-0">
+    <>
+      <header
+        className="grid grid-cols-[1fr_auto_1fr] md:flex sticky top-0 z-40 h-[65px] md:h-[70px] bg-white shadow-[0_2px_20px_rgba(21,35,73,0.05)] items-center justify-between px-3 md:px-4 2xl:px-5 rounded-b-none md:rounded-b-2xl overflow-hidden"
+        id="top"
+      >
+        <div className="contents md:flex md:items-center md:gap-1.5 xl:gap-2 md:shrink-0">
+          {/* Boxed Logo with Orange Border on desktop */}
+          <a
+            className="col-start-1 row-start-1 justify-self-start md:col-auto md:row-auto md:justify-self-auto md:border-[1.5px] md:border-[#F26635] md:px-1.5 md:py-0.5 xl:px-2 xl:py-1 font-['Manrope',sans-serif] font-extrabold text-[13px] md:text-[13.5px] xl:text-[14.5px] leading-tight text-[#111D46] tracking-normal whitespace-nowrap bg-white flex flex-col justify-center select-none shrink-0"
+            href="#home"
+            aria-label={`${titlePart1} ${titlePart2} home`}
+          >
+            {logoType === 'image' && logoImage && failedLogoImage !== logoImage ? (
               <img
-                src={logoType === 'image' && logoImage ? logoImage : brandLogo}
-                alt={`${logoText} ${logoHighlight}`}
-                className="h-9 sm:h-11 w-auto max-w-[210px] sm:max-w-[275px] object-contain"
+                src={resolveAssetUrl(logoImage)}
+                alt={`${titlePart1} ${titlePart2}`}
+                className="h-6.5 md:h-7.5 max-w-[120px] object-contain"
+                onError={() => setFailedLogoImage(logoImage)}
               />
-            </a>
-
-            <div className="h-6 w-px bg-slate-300 hidden md:block"></div>
-
-            {partnerLogo ? (
-              <img src={partnerLogo} alt={partnerBadge} className="h-7 max-w-[130px] object-contain hidden sm:block" />
             ) : (
-              <img
-                src={partnerLogoImg}
-                alt="Authorized Channel Partner"
-                className="h-8 sm:h-10 max-w-[140px] sm:max-w-[160px] object-contain hidden sm:block"
-              />
+              <>
+                <div>
+                  {titlePart1}{' '}
+                  <span className="text-[#F26635] not-italic">{titlePart2}</span>
+                </div>
+                <small className="block font-bold text-[6px] md:text-[6.5px] xl:text-[7px] tracking-[1.5px] xl:tracking-[2px] text-[#67748A] mt-0.5 uppercase">
+                  {subtitle}
+                </small>
+              </>
             )}
-          </div>
-
-          {/* Navigation Menu (Preserved Completely as requested) */}
-          <nav className="hidden xl:flex items-center space-x-4 lg:space-x-5 text-sm font-semibold text-gray-700">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="hover:text-[#8f7635] transition-colors whitespace-nowrap cursor-pointer py-1"
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
-
-          {/* Right Header Box matching Kohinoor Central Park */}
-          <div className="hidden lg:flex items-center gap-2 shrink-0">
-            {/* Pre Register Dark Button */}
-            <button
-              type="button"
-              onClick={() => onOpenModal && onOpenModal('Pre-Register Here for Site Visit')}
-              className="flex items-center gap-2 bg-[#0d1624] hover:bg-[#1a2638] text-white px-3.5 py-2 rounded-md font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs"
-            >
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white">
-                <User size={13} />
-              </div>
-              <span>Pre Register</span>
-            </button>
-
-            {/* WhatsApp Green Icon Button */}
-            <a
-              href={`https://wa.me/${whatsappNumber}?text=Hi,%20I%20am%20interested%20in%20learning%20more%20about%20the%20project.`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Chat on WhatsApp"
-              className="w-10 h-10 rounded-md bg-[#25D366] hover:bg-[#20ba59] flex items-center justify-center text-white shadow-xs transition-transform hover:scale-105"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.842-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-              </svg>
-            </a>
-          </div>
-
-          {/* Mobile Toggle Button only (Enquire moved inside toggle drawer as requested) */}
-          <div className="flex xl:hidden items-center">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle Menu"
-              className="p-2 border border-gray-300 rounded-md text-gray-700 hover:text-gray-900 focus:outline-none cursor-pointer"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          </a>
+          <span className="hidden md:block w-px h-[20px] bg-[#DDE2EC]" aria-hidden="true"></span>
+          <a
+            className="col-start-3 row-start-1 justify-self-end flex items-center w-[76px] h-6 md:w-[90px] md:h-7 shrink-0"
+            href="#home"
+            aria-label="DigiPace"
+          >
+            {data?.partner_logo && failedPartnerLogo !== data.partner_logo ? (
+              <img
+                src={resolveAssetUrl(data.partner_logo)}
+                alt="Partner logo"
+                className="w-full h-7 object-contain"
+                onError={() => setFailedPartnerLogo(data.partner_logo)}
+              />
+            ) : data?.partner_badge && data.partner_badge !== 'DigiPACE' ? (
+              <span className="w-full text-right font-extrabold text-[11px] text-[#111D46]">{data.partner_badge}</span>
+            ) : (
+              <PartnerLogo className="w-full h-7 object-contain" />
+            )}
+          </a>
         </div>
-      </div>
 
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="xl:hidden bg-white border-b border-gray-200 px-5 pt-3 pb-6 space-y-1.5 shadow-xl">
-          {navLinks.map((link) => (
+        {/* Desktop Navigation Links - Fitted cleanly with zero overflow */}
+        <nav className="hidden md:flex items-center gap-1 xl:gap-1.5 2xl:gap-3 shrink-0" id="nav" aria-label="Main navigation">
+          {NAV_LINKS.map((link) => (
             <a
-              key={link.name}
+              key={link.id}
               href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3.5 py-2 text-sm font-semibold text-gray-800 hover:text-[#8f7635] hover:bg-slate-50 rounded-md"
+              className={`font-semibold text-[13px] 2xl:text-[14px] tracking-tight whitespace-nowrap py-5 px-1 lg:px-1.5 2xl:px-2 border-b-[3px] transition-colors ${activeSection === link.id
+                ? 'text-[#F26635] border-[#F26635]'
+                : 'text-[#4A5877] border-transparent hover:text-[#F26635] hover:border-[#F26635]'
+                }`}
+              onClick={() => setActiveSection(link.id)}
             >
-              {link.name}
+              {link.id === 'price' ? (
+                <>
+                  <span className="hidden 2xl:inline">Configuration &amp; </span>Price
+                </>
+              ) : link.id === 'elevation' ? (
+                <>
+                  Elevation<span className="hidden 2xl:inline"> Images</span>
+                </>
+              ) : (
+                link.label
+              )}
             </a>
           ))}
-          <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenModal('Pre-Register Here for Site Visit');
-              }}
-              className="flex-1 text-center text-xs font-bold bg-[#8f7635] text-white px-4 py-2.5 rounded-md shadow-xs"
-            >
-              Pre Register
-            </button>
-            <a
-              href={`https://wa.me/${whatsappNumber}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-md bg-[#25D366] flex items-center justify-center text-white shrink-0"
-            >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.842-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-              </svg>
-            </a>
+        </nav>
+
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          className="md:hidden col-start-2 row-start-1 justify-self-center flex items-center justify-center w-[42px] h-[40px] border border-[#d8e0ea] bg-white rounded-lg cursor-pointer self-center shrink-0 active:scale-95 transition-transform"
+          id="mHamburger"
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <div className="flex flex-col gap-1.5 justify-center items-center w-5">
+            <span className="w-5 h-[2px] bg-[#111D46] rounded-full"></span>
+            <span className="w-5 h-[2px] bg-[#111D46] rounded-full"></span>
+            <span className="w-5 h-[2px] bg-[#111D46] rounded-full"></span>
+          </div>
+        </button>
+      </header>
+
+      {/* Mobile Quick Navigation Tabs (Floor Plan · Price · Gallery) */}
+      <nav
+        aria-label="Quick project navigation"
+        className="mobileQuickTabs md:hidden sticky top-[65px] z-40 grid grid-cols-3 h-[47px] w-full bg-white border-b border-[#e5e9f0] shadow-[0_3px_10px_rgba(17,29,70,0.07)]"
+        id="mobileQuickTabs"
+      >
+        <a
+          className={`flex items-center justify-center min-w-0 no-underline font-semibold text-[13px] border-b-[3px] pt-1 transition-colors ${activeQuickTab === 'floor-plan'
+            ? 'text-[#f26635] border-[#f26635] active'
+            : 'text-[#37445c] border-transparent hover:text-[#f26635]'
+            }`}
+          data-quick-tab="floor-plan"
+          href="#floor-plan"
+          onClick={(e) => handleQuickTabClick(e, 'floor-plan')}
+        >
+          Floor Plan
+        </a>
+        <a
+          className={`flex items-center justify-center min-w-0 no-underline font-semibold text-[13px] border-b-[3px] pt-1 transition-colors ${activeQuickTab === 'price'
+            ? 'text-[#f26635] border-[#f26635] active'
+            : 'text-[#37445c] border-transparent hover:text-[#f26635]'
+            }`}
+          data-quick-tab="price"
+          href="#price"
+          onClick={(e) => handleQuickTabClick(e, 'price')}
+        >
+          Price
+        </a>
+        <a
+          className={`flex items-center justify-center min-w-0 no-underline font-semibold text-[13px] border-b-[3px] pt-1 transition-colors ${activeQuickTab === 'gallery'
+            ? 'text-[#f26635] border-[#f26635] active'
+            : 'text-[#37445c] border-transparent hover:text-[#f26635]'
+            }`}
+          data-quick-tab="gallery"
+          href="#gallery"
+          onClick={(e) => handleQuickTabClick(e, 'gallery')}
+        >
+          Gallery
+        </a>
+      </nav>
+
+      {/* Mobile Navigation Dropdown Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/25"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Navigation Dropdown Menu Card - Compact height with bottom safe clearance */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed top-[112px] inset-x-3 z-50 bg-white shadow-[0_12px_36px_rgba(17,29,70,0.18)] border border-[#E2E8F0] rounded-2xl px-4 sm:px-5 py-2 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-thin animatePop"
+          id="mMenu"
+          aria-label="Mobile navigation"
+        >
+          <div className="flex flex-col">
+            {mobileMenuRows.map((row, rowIdx) => (
+              <div
+                key={rowIdx}
+                className="grid grid-cols-2 gap-3 sm:gap-4 py-2 sm:py-2.5 border-b border-[#F0F2F6] items-center"
+              >
+                {row.map((item, itemIdx) => (
+                  <a
+                    key={itemIdx}
+                    href={item.href}
+                    className="text-[#18243E] no-underline font-medium text-[13.5px] sm:text-[14px] leading-tight hover:text-[#F26635] active:text-[#F26635] transition-colors py-0.5"
+                    onClick={(e) => handleMobileNavClick(e, item.href)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

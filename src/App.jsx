@@ -1,27 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import About from './components/About';
-import Overview from './components/Overview';
-import PropertySpecification from './components/PropertySpecification';
-import PricingTable from './components/PricingTable';
-import FloorPlan from './components/FloorPlan';
-import Amenities from './components/Amenities';
-import ElevationGallery from './components/ElevationGallery';
-import VideoTour from './components/VideoTour';
-import Location from './components/Location';
-import DeveloperAndRera from './components/DeveloperAndRera';
-import ConstructionSection from './components/ConstructionSection';
-import FaqSection from './components/FaqSection';
 import SidebarEnquiry from './components/SidebarEnquiry';
-import Footer from './components/Footer';
-import EnquiryModal from './components/EnquiryModal';
-import MobileBottomBar from './components/MobileBottomBar';
 import VerticalEnquiryButton from './components/VerticalEnquiryButton';
+import MobileBottomBar from './components/MobileBottomBar';
+import MobileEnquiry from './components/MobileEnquiry';
 import { fetchAllData } from './admin/api';
 
+const About = React.lazy(() => import('./components/About'));
+const Overview = React.lazy(() => import('./components/Overview'));
+const PropertySpecification = React.lazy(() => import('./components/PropertySpecification'));
+const PricingTable = React.lazy(() => import('./components/PricingTable'));
+const ElevationGallery = React.lazy(() => import('./components/ElevationGallery'));
+const Amenities = React.lazy(() => import('./components/Amenities'));
+const GallerySection = React.lazy(() => import('./components/GallerySection'));
+const VideoTour = React.lazy(() => import('./components/VideoTour'));
+const Location = React.lazy(() => import('./components/Location'));
+const SalesOffice = React.lazy(() => import('./components/SalesOffice'));
+const DeveloperAndRera = React.lazy(() => import('./components/DeveloperAndRera'));
+const FaqSection = React.lazy(() => import('./components/FaqSection'));
+const ConstructionSection = React.lazy(() => import('./components/ConstructionSection'));
+const Footer = React.lazy(() => import('./components/Footer'));
+const EnquiryModal = React.lazy(() => import('./components/EnquiryModal'));
 const AdminLayout = React.lazy(() => import('./admin/AdminLayout'));
 const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage'));
+
+function DeferredSectionContent({ children, onReady }) {
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
+  return children;
+}
+
+function DeferredSection({ children, anchorIds = [], minHeight = 340 }) {
+  const sectionRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => (
+      !('IntersectionObserver' in window)
+      || anchorIds.includes(decodeURIComponent(window.location.hash.slice(1)))
+    ),
+  );
+  const anchorKey = anchorIds.join('|');
+  const markLoaded = useCallback(() => {
+    setIsLoaded(true);
+    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    if (!anchorKey.split('|').includes(targetId)) return;
+
+    window.setTimeout(() => {
+      document.getElementById(targetId)?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }, 0);
+  }, [anchorKey]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    if (!('IntersectionObserver' in window)) return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsNearViewport(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: '800px 0px' });
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [isNearViewport]);
+
+  return (
+    <div
+      ref={sectionRef}
+      className="relative w-full"
+      style={isNearViewport ? undefined : { minHeight }}
+    >
+      {!isLoaded && anchorIds.map((id) => (
+        <span key={id} id={id} className="absolute top-0" aria-hidden="true" />
+      ))}
+      {isNearViewport && (
+        <React.Suspense fallback={<div aria-hidden="true" style={{ minHeight }} />}>
+          <DeferredSectionContent onReady={markLoaded}>
+            {children}
+          </DeferredSectionContent>
+        </React.Suspense>
+      )}
+    </div>
+  );
+}
 
 const isAdminRoute = () => {
   const path = window.location.pathname.toLowerCase();
@@ -41,114 +108,32 @@ export default function App() {
     if (isPrivacyRoute()) return 'privacy';
     return 'website';
   });
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('Register Your Interest');
+  const [toastMessage, setToastMessage] = useState('');
   const [siteData, setSiteData] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage('');
+    }, 4500);
+  };
 
   const handleOpenModal = (title = 'Register Your Interest') => {
     setModalTitle(title);
     setModalOpen(true);
   };
 
-  const applyMetaTags = (meta) => {
-    if (!meta) return;
-
-    if (meta.meta_title) {
-      document.title = meta.meta_title;
-    }
-
-    const setMeta = (attr, key, val) => {
-      if (!val) return;
-      let el = document.querySelector(`meta[${attr}="${key}"]`);
-      if (!el) {
-        el = document.createElement('meta');
-        el.setAttribute(attr, key);
-        document.head.appendChild(el);
-      }
-      el.setAttribute('content', val);
-    };
-
-    const setLink = (rel, href, extraAttr = {}) => {
-      if (!href) return;
-      let selector = `link[rel="${rel}"]`;
-      if (extraAttr.name && extraAttr.val) {
-        selector += `[${extraAttr.name}="${extraAttr.val}"]`;
-      }
-      let el = document.querySelector(selector);
-      if (!el) {
-        el = document.createElement('link');
-        el.setAttribute('rel', rel);
-        if (extraAttr.name && extraAttr.val) {
-          el.setAttribute(extraAttr.name, extraAttr.val);
-        }
-        document.head.appendChild(el);
-      }
-      el.setAttribute('href', href);
-    };
-
-    setMeta('name', 'description', meta.meta_description);
-    setMeta('name', 'keywords', meta.meta_keywords);
-    setMeta('name', 'author', meta.author);
-    setMeta('name', 'robots', meta.robots);
-    setMeta('name', 'googlebot', meta.robots);
-    setMeta('name', 'bingbot', meta.robots);
-    setMeta('name', 'theme-color', meta.theme_color);
-    setMeta('name', 'msapplication-TileColor', meta.theme_color);
-
-    if (meta.canonical_url) {
-      setLink('canonical', meta.canonical_url);
-      setLink('alternate', meta.canonical_url, { name: 'hreflang', val: 'x-default' });
-    }
-
-    setMeta('property', 'og:type', meta.og_type || 'website');
-    setMeta('property', 'og:site_name', meta.og_site_name);
-    setMeta('property', 'og:title', meta.og_title || meta.meta_title);
-    setMeta('property', 'og:description', meta.og_description || meta.meta_description);
-    setMeta('property', 'og:url', meta.og_url || meta.canonical_url);
-    setMeta('property', 'og:image', meta.og_image);
-    setMeta('property', 'og:image:secure_url', meta.og_image);
-    setMeta('property', 'og:locale', meta.og_locale || 'en_US');
-
-    setMeta('name', 'twitter:card', meta.twitter_card || 'summary_large_image');
-    setMeta('name', 'twitter:title', meta.twitter_title || meta.meta_title);
-    setMeta('name', 'twitter:description', meta.twitter_description || meta.meta_description);
-    setMeta('name', 'twitter:image', meta.twitter_image || meta.og_image);
-    setMeta('name', 'twitter:site', meta.twitter_site);
-    setMeta('name', 'twitter:creator', meta.twitter_site);
-
-    if (meta.google_verification) setMeta('name', 'google-site-verification', meta.google_verification);
-    if (meta.bing_verification) setMeta('name', 'msvalidate.01', meta.bing_verification);
-    if (meta.facebook_verification) setMeta('name', 'facebook-domain-verification', meta.facebook_verification);
-    if (meta.pinterest_verification) setMeta('name', 'p:domain_verify', meta.pinterest_verification);
-
-    if (meta.social_facebook) setLink('me', meta.social_facebook, { name: 'data-type', val: 'facebook' });
-    if (meta.social_instagram) setLink('me', meta.social_instagram, { name: 'data-type', val: 'instagram' });
-    if (meta.social_linkedin) setLink('me', meta.social_linkedin, { name: 'data-type', val: 'linkedin' });
-
-    if (meta.header_scripts && meta.header_scripts.trim()) {
-      let scriptContainer = document.getElementById('dynamic-header-scripts');
-      if (!scriptContainer) {
-        scriptContainer = document.createElement('div');
-        scriptContainer.id = 'dynamic-header-scripts';
-        scriptContainer.style.display = 'none';
-        document.head.appendChild(scriptContainer);
-      }
-      scriptContainer.innerHTML = meta.header_scripts;
-    }
-  };
-
   const loadData = async () => {
     try {
       const data = await fetchAllData();
-      setSiteData(data);
-      if (data?.meta) {
-        applyMetaTags(data.meta);
+      if (data && typeof data === 'object') {
+        setSiteData(data);
       }
-    } catch (err) {
-      console.log('Error fetching database data:', err);
-    } finally {
-      setLoading(false);
+    } catch {
+      // Backend offline or fallback to demo defaults
     }
   };
 
@@ -188,12 +173,6 @@ export default function App() {
     }
   }, [view]);
 
-  const handleOpenPrivacy = () => {
-    window.location.hash = '#privacy-policy';
-    setView('privacy');
-    window.scrollTo(0, 0);
-  };
-
   const handleBackToSite = () => {
     if (window.location.pathname !== '/') {
       window.history.pushState({}, '', '/');
@@ -205,7 +184,7 @@ export default function App() {
 
   if (view === 'admin') {
     return (
-      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f8fafc]"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>}>
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F6F8FC]"><div className="w-8 h-8 border-4 border-[#111D46] border-t-transparent rounded-full animate-spin"></div></div>}>
         <AdminLayout onBackToSite={handleBackToSite} />
       </React.Suspense>
     );
@@ -213,7 +192,7 @@ export default function App() {
 
   if (view === 'privacy') {
     return (
-      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f8fafc]"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>}>
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#F6F8FC]"><div className="w-8 h-8 border-4 border-[#111D46] border-t-transparent rounded-full animate-spin"></div></div>}>
         <PrivacyPolicyPage
           initialData={siteData?.privacy}
           onBackToSite={handleBackToSite}
@@ -222,82 +201,137 @@ export default function App() {
     );
   }
 
-  if (loading && !siteData && view === 'website') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-semibold text-sm">Loading from Database...</p>
-        </div>
-      </div>
-    );
-  }
+  const projectTitle = siteData?.hero?.title || (siteData?.header?.logo_text ? `${siteData.header.logo_text} ${siteData.header.logo_highlight || ''}`.trim() : 'Arban City Sector 0');
+  const locationParts = (siteData?.hero?.location || 'Airoli, Navi Mumbai')
+    .replace(/^At\s+/i, '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const projectType = siteData?.overview?.find((item) => item.label?.toLowerCase() === 'project type')?.value || 'Residential';
+  const builderName = siteData?.hero?.developer || siteData?.developer?.company_name || siteData?.developer?.name || 'Delta Tricity';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f7fa] text-[#1e293b]">
-      <Navbar
-        data={siteData?.header}
-        onOpenModal={handleOpenModal}
-      />
+    <>
+      <div className="page max-w-[1510px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_328px] gap-4 pl-0 md:pl-6 max-md:block max-md:max-w-[430px] max-md:w-full max-md:px-2.5 max-md:mx-auto" id="page">
+        <main className="min-w-0 pb-8 max-md:contents">
+          {/* Sticky Header over content column only */}
+          <Navbar data={siteData?.header} onOpenModal={handleOpenModal} />
 
-      <main className="flex-1 w-full pl-0 pr-2 sm:pr-4 lg:pr-5 py-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
-          {/* Main Left Column (Touching left edge seamlessly) */}
-          <div className="lg:col-span-9 space-y-4">
-            <Hero data={siteData?.hero} onOpenModal={handleOpenModal} />
-            <Overview
-              data={siteData?.overview}
-              aboutData={siteData?.about}
-              onOpenModal={handleOpenModal}
-              projectTitle={siteData?.hero?.title || 'Arban City Sector 0'}
-            />
-            <PropertySpecification data={siteData?.specifications} />
-            <PricingTable data={siteData?.pricing} onOpenModal={handleOpenModal} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
-            <FloorPlan data={siteData?.floorplans || siteData?.floorPlans} onOpenModal={handleOpenModal} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
-            <Amenities data={siteData?.amenities} onOpenModal={handleOpenModal} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
-            <ElevationGallery data={siteData?.gallery} onOpenModal={handleOpenModal} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
-            <VideoTour data={siteData?.video} onOpenModal={handleOpenModal} />
-            <Location data={siteData?.location} onOpenModal={handleOpenModal} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
-            <DeveloperAndRera data={siteData?.developer} />
-            <ConstructionSection data={siteData?.construction} />
-            <FaqSection data={siteData?.faqs} projectTitle={siteData?.hero?.title || 'Arban City Sector 0'} />
+          {/* Hero Section */}
+          <Hero data={siteData?.hero} developerData={siteData?.developer} onOpenModal={handleOpenModal} />
 
-            {/* Mobile View: Visible Enquiry Form (Item 18) */}
-            <div className="lg:hidden mt-6">
-              <SidebarEnquiry data={siteData} onOpenModal={handleOpenModal} />
-            </div>
+          {/* Dedicated In-stream Mobile Enquiry Form */}
+          <MobileEnquiry showToast={showToast} />
+
+          {/* Main Card Sections */}
+          <div className="flex flex-col gap-4.5 mt-4 max-md:gap-3 max-md:px-2.5 max-md:pb-20">
+            <DeferredSection anchorIds={['about']}>
+              <About data={siteData?.about} onOpenModal={handleOpenModal} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['overview']}>
+              <Overview data={siteData?.overview} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['specifications']}>
+              <PropertySpecification data={siteData?.specifications} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['elevation']}>
+              <ElevationGallery
+                data={siteData?.gallery}
+                onOpenModal={handleOpenModal}
+                projectName={projectTitle}
+                builderName={builderName}
+                projectType={projectType}
+                locality={locationParts[0] || 'Airoli'}
+                city={locationParts[1] || 'Navi Mumbai'}
+              />
+            </DeferredSection>
+            <DeferredSection anchorIds={['price', 'floor-plan']} minHeight={440}>
+              <PricingTable
+                data={siteData?.pricing}
+                floorPlans={siteData?.floorplans || siteData?.floorPlans}
+                onOpenModal={handleOpenModal}
+              />
+            </DeferredSection>
+            <DeferredSection anchorIds={['amenities']}>
+              <Amenities data={siteData?.amenities} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['gallery']}>
+              <GallerySection
+                data={siteData?.gallery}
+                projectTitle={projectTitle}
+                locality={locationParts[0] || 'Airoli'}
+                city={locationParts[1] || 'Navi Mumbai'}
+                onOpenModal={handleOpenModal}
+              />
+            </DeferredSection>
+            <DeferredSection anchorIds={['video']}>
+              <VideoTour data={siteData?.video} onOpenModal={handleOpenModal} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['location']}>
+              <Location data={siteData?.location} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['sales-office']}>
+              <SalesOffice data={siteData?.location} projectTitle={projectTitle} phone={siteData?.header?.phone || '+91 81000 00000'} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['developer']}>
+              <DeveloperAndRera data={siteData?.developer} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['faq']}>
+              <FaqSection data={siteData?.faqs} projectTitle={projectTitle} />
+            </DeferredSection>
+            <DeferredSection anchorIds={['construction']}>
+              <ConstructionSection
+                data={siteData?.construction}
+                onOpenModal={handleOpenModal}
+                projectName={projectTitle}
+                location={`${locationParts[0] || 'Airoli'}, ${locationParts[1] || 'Navi Mumbai'}`}
+              />
+            </DeferredSection>
           </div>
+        </main>
 
-          {/* Desktop Right Sidebar: Fixed Form with Consent (Item 15) */}
-          <div className="lg:col-span-3 hidden lg:block">
-            <div className="sticky top-[80px] z-30">
-              <SidebarEnquiry data={siteData} onOpenModal={handleOpenModal} />
-            </div>
-          </div>
-        </div>
-      </main>
+        {/* 328px Sticky Right Enquiry Rail */}
+        <SidebarEnquiry data={siteData} onOpenModal={handleOpenModal} showToast={showToast} />
+      </div>
 
-      <Footer
-        data={siteData?.header}
-        developerData={siteData?.developer}
-        onOpenModal={handleOpenModal}
-        onOpenPrivacy={handleOpenPrivacy}
-      />
+      {/* Footer */}
+      <DeferredSection minHeight={260}>
+        <Footer
+          developerData={siteData?.developer}
+          privacyData={siteData?.privacy}
+          headerData={siteData?.header}
+        />
+      </DeferredSection>
 
-      {/* Floating Vertical Enquiry Button with Highlighted Border (Item 19) */}
+      {/* Floating Vertical "Enquire Now" tab on mobile */}
       <VerticalEnquiryButton onOpenModal={handleOpenModal} />
 
+      {/* Mobile Sticky Bottom Bar */}
       <MobileBottomBar
         onOpenModal={handleOpenModal}
-        phone={siteData?.header?.phone || siteData?.hero?.phone}
-        whatsapp={siteData?.header?.whatsapp}
+        phone={siteData?.header?.phone || siteData?.hero?.phone || '+91 81000 00000'}
+        whatsapp={siteData?.header?.whatsapp || '918100000000'}
       />
 
-      <EnquiryModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={modalTitle}
-      />
-    </div>
+      {/* Enquiry Popup Modal */}
+      {modalOpen && (
+        <React.Suspense fallback={null}>
+          <EnquiryModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title={modalTitle}
+            showToast={showToast}
+            privacyData={siteData?.privacy}
+          />
+        </React.Suspense>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed left-1/2 bottom-7 -translate-x-1/2 z-[120] bg-[#1F7A4D] text-white font-bold text-xs md:text-sm py-3 px-5 rounded-xl shadow-2xl animatePop" role="status">
+          {toastMessage}
+        </div>
+      )}
+    </>
   );
 }

@@ -1,21 +1,14 @@
 import React from 'react';
-import { MessageSquareText } from 'lucide-react';
 
 export default function VerticalEnquiryButton({ onOpenModal }) {
   return (
     <button
+      className="vTab vTab-border-animation lg:hidden fixed top-[70%] -translate-y-1/2 right-0 z-75 [writing-mode:vertical-rl] border-0 rounded-l-[10px] py-[13px] px-[9px] font-['Manrope',sans-serif] font-bold text-[13px] text-white bg-[#f26635] shadow-[0_8px_22px_rgba(0,0,0,0.25)] cursor-pointer tracking-[0.08em] select-none uppercase"
       type="button"
-      onClick={() => onOpenModal && onOpenModal('Quick Enquiry')}
+      onClick={() => onOpenModal && onOpenModal('Enquire Now')}
       aria-label="Enquire Now"
-      className="hidden sm:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#8f7635] hover:bg-[#7a642b] text-white py-3.5 px-2 rounded-l-md shadow-2xl border-2 border-r-0 border-[#d4af37] cursor-pointer flex-col items-center gap-2 transition-all transform hover:-translate-x-1"
     >
-      <MessageSquareText size={17} />
-      <span
-        className="text-[11px] font-black tracking-widest uppercase select-none"
-        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-      >
-        ENQUIRE NOW
-      </span>
+      Enquire Now
     </button>
   );
 }

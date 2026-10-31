@@ -1,53 +1,67 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 
-export default function FaqSection({ data, projectTitle = 'Arban City Sector 0' }) {
+export default function FaqSection({ data, projectTitle = 'Aveon City Sector Zero' }) {
   const defaultFaqs = [
-    { question: `Where is ${projectTitle} located?`, answer: `${projectTitle} is strategically located in Airoli, Navi Mumbai, right off Thane-Belapur Road with immediate connectivity to Airoli Railway Station and Eastern Express Highway.` },
-    { question: `What is the configuration of apartments in ${projectTitle}?`, answer: `The project offers lavish 1 BHK, 2 BHK, and 3 BHK luxury residences designed with deck views and efficient layouts.` },
-    { question: `What is the starting price of apartments in ${projectTitle}?`, answer: `Residences start from ₹ 89 Lakhs* onwards. Detailed pricing sheets, floor-wise cost breakups and flexible payment schedules are available on request.` },
-    { question: `What is the land area of the ${projectTitle} project?`, answer: `The township is spread across 5.5 acres of prime land featuring 3 iconic towers rising up to 35+ storeys.` },
-    { question: `What schools, malls, and hospitals are near ${projectTitle}?`, answer: `Leading institutions including EuroSchool, Mindspace IT Park, D-Mart, and Reliance Hospital are located within a 5 to 15 minute drive.` },
+    {
+      q: `Where is ${projectTitle} located?`,
+      a: `${projectTitle} is located in Sector Zero, Airoli, Navi Mumbai, Maharashtra. It enjoys excellent connectivity to the Thane–Belapur Road, Airoli Railway Station, Eastern Express Highway, and major business parks including Mindspace IT Park.`,
+    },
+    {
+      q: `What configurations and sizes are available at ${projectTitle}?`,
+      a: `The project offers thoughtfully designed 1, 2, and 3 BHK luxury residences. The 1 BHK units start at 413 sq.ft, 2 BHK units at 625 sq.ft, and 3 BHK units up to 930 sq.ft carpet area.`,
+    },
+    {
+      q: `What is the starting price for residences?`,
+      a: `Pricing at ${projectTitle} starts at ₹89 Lacs* onwards for 1 BHK configurations. Detailed cost sheets, floor-wise pricing breakups, and customized payment plans are available on request.`,
+    },
+    {
+      q: `Is ${projectTitle} MahaRERA registered?`,
+      a: `Yes, the project is registered with MahaRERA under registration number P51700000000. All official project details, floor plans, approvals, and possession schedules can be verified on the MahaRERA website at maharera.maharashtra.gov.in.`,
+    },
+    {
+      q: `What amenities are provided in the project?`,
+      a: `The project features over 35+ lifestyle amenities including a Swimming Pool, Grand Clubhouse, Gymnasium, Landscaped Podium Gardens, Kids Play Area, Jogging Track, Yoga Deck, and 24x7 Multi-tier Security.`,
+    },
   ];
 
   const faqs = Array.isArray(data) && data.length > 0 ? data : defaultFaqs;
-  const [openFaq, setOpenFaq] = useState(0);
+  const [openIdx, setOpenIdx] = useState(0);
+
+  const toggle = (idx) => {
+    setOpenIdx((prev) => (prev === idx ? null : idx));
+  };
 
   return (
-    <section id="faqs" className="scroll-mt-20 bg-white rounded-none border-l-0 border-y border-r border-gray-200/80 shadow-2xs p-5 sm:p-8 mb-4">
-      <div className="mb-5">
-        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-          FAQs - {projectTitle}
-        </h2>
+    <section className="section-card" id="faq">
+      <div className="text-center font-bold text-[11px] tracking-[1.6px] uppercase text-[#F26635] mb-1">
+        Answers you need
       </div>
+      <h2 className="section-h2">Frequently asked questions</h2>
 
-      <div className="space-y-2.5">
-        {faqs.map((faq, index) => {
-          const isOpen = openFaq === index;
-          const qText = faq.question || faq.q || '';
-          const aText = faq.answer || faq.a || '';
-
+      <div className="max-w-[820px] mx-auto mt-4 divide-y divide-[#E8ECF2]">
+        {faqs.map((faq, idx) => {
+          const isOpen = openIdx === idx;
           return (
-            <div
-              key={faq.id || index}
-              className="border border-gray-200 rounded-md overflow-hidden bg-slate-50/50"
-            >
+            <div key={idx} className="border-b border-[#E8ECF2]">
               <button
                 type="button"
-                onClick={() => setOpenFaq(isOpen ? null : index)}
-                className="w-full py-3.5 px-4 sm:px-5 flex items-center justify-between text-left text-xs sm:text-sm font-bold text-gray-900 cursor-pointer gap-3 hover:bg-slate-100/70 transition-colors"
+                className="w-full flex justify-between gap-4 items-center py-2.5 px-0.5 bg-transparent border-0 text-left font-['Manrope',sans-serif] font-bold text-sm md:text-[14.5px] text-[#111D46] cursor-pointer hover:text-[#F26635] transition-colors"
+                onClick={() => toggle(idx)}
               >
-                <span className="min-w-0">{qText}</span>
-                <span className="text-gray-500 shrink-0">
-                  {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                <span>{faq.q || faq.question}</span>
+                <span className="shrink-0 w-6 h-6 rounded-full bg-[#F1F4F9] flex items-center justify-center font-bold text-sm leading-none text-[#F26635]">
+                  {isOpen ? '−' : '+'}
                 </span>
               </button>
-
-              {isOpen && (
-                <div className="px-4 sm:px-5 pb-4 pt-1 text-xs sm:text-sm text-gray-700 leading-relaxed font-normal border-t border-gray-200/60 bg-white">
-                  {aText}
+              <div
+                className={`grid transition-all duration-300 ease-in-out ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden text-[#535F73] text-xs md:text-sm leading-relaxed pr-6 pb-2.5 pt-0.5">
+                  {faq.a || faq.answer}
                 </div>
-              )}
+              </div>
             </div>
           );
         })}

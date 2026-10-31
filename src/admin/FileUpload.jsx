@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
-import { uploadFile } from './api';
+import { useState, useRef } from 'react';
+import { Upload, Loader2, Video as VideoIcon } from 'lucide-react';
+import { resolveAssetUrl, uploadFile } from './api';
 
 export default function FileUpload({ value, onChange, accept = 'image/*', label, isVideo = false }) {
   const [uploading, setUploading] = useState(false);
@@ -52,13 +52,13 @@ export default function FileUpload({ value, onChange, accept = 'image/*', label,
         <div className="relative inline-block border border-slate-200 rounded-xl p-3 bg-slate-50 max-w-md shadow-xs">
           {isVideo ? (
             <video
-              src={value}
+              src={resolveAssetUrl(value)}
               controls
               className="max-h-48 max-w-full rounded-lg object-contain bg-black"
             />
           ) : (
             <img
-              src={value}
+              src={resolveAssetUrl(value)}
               alt="Uploaded file preview"
               className="max-h-36 max-w-full rounded-lg object-contain"
               onError={(e) => {
@@ -108,7 +108,7 @@ export default function FileUpload({ value, onChange, accept = 'image/*', label,
                 Click to browse and upload {isVideo ? 'video' : 'image'}
               </span>
               <span className="text-xs text-slate-500">
-                Direct file upload from your computer (storage on backend/uploads)
+                File is saved in frontend/public/assets; its path is saved with the website settings.
               </span>
             </div>
           )}

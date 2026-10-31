@@ -1,5 +1,31 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
 
+export function resolveAssetUrl(value) {
+  if (!value || typeof value !== 'string') return '';
+  if (/^(data:|blob:)/i.test(value)) return value;
+
+  const parsedValue = new URL(value, window.location.origin);
+  if (parsedValue.pathname.startsWith('/assets/')) {
+    return new URL(`${parsedValue.pathname}${parsedValue.search}${parsedValue.hash}`, window.location.origin).href;
+  }
+  if (parsedValue.pathname.startsWith('/uploads/')) {
+    const filename = parsedValue.pathname.split('/').pop();
+    return new URL(`/assets/${filename}${parsedValue.search}${parsedValue.hash}`, window.location.origin).href;
+  }
+  if (value.startsWith('/') && !value.startsWith('//')) {
+    return parsedValue.href;
+  }
+
+  const apiUrl = new URL(API_BASE, window.location.origin);
+  const assetUrl = parsedValue;
+  const isLocalhostAsset = ['localhost', '127.0.0.1'].includes(assetUrl.hostname);
+  if (isLocalhostAsset && apiUrl.host !== assetUrl.host) {
+    assetUrl.protocol = apiUrl.protocol;
+    assetUrl.host = apiUrl.host;
+  }
+  return assetUrl.href;
+}
+
 export async function loginAdmin(email, password) {
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
@@ -360,5 +386,3 @@ export async function deleteSpecification(id) {
   if (!res.ok) throw new Error('Failed to delete specification');
   return res.json();
 }
-
-

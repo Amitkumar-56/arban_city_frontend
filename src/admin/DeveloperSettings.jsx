@@ -12,6 +12,7 @@ export default function DeveloperSettings({ data, onRefresh }) {
     channel_partner_rera: data?.channel_partner_rera || 'A09000021404',
     project_rera: data?.project_rera || 'PR1331012500415',
     qr_image: data?.qr_image || '',
+    developer_logo: data?.developer_logo || '',
     digipace_rera: data?.digipace_rera || 'A51700026634',
     digipace_qr: data?.digipace_qr || '',
     maharera_website: data?.maharera_website || 'https://maharera.maharashtra.gov.in/',
@@ -47,7 +48,7 @@ export default function DeveloperSettings({ data, onRefresh }) {
           Developer &amp; MahaRERA Compliance Manager
         </h2>
         <p className="text-sm text-slate-500 mt-1">
-          Manage developer profile, Project MahaRERA, Digipace Agent MahaRERA credentials, and social media links.
+          Manage developer profile, logo, Project MahaRERA, Digipace Agent MahaRERA credentials, and social media links.
         </p>
       </div>
 
@@ -74,6 +75,12 @@ export default function DeveloperSettings({ data, onRefresh }) {
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
             />
           </div>
+
+          <FileUpload
+            label="Developer Company Logo (Optional)"
+            value={formData.developer_logo || ''}
+            onChange={(url) => setFormData({ ...formData, developer_logo: url })}
+          />
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">Developer Description</label>

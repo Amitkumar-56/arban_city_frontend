@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { updateHero } from './api';
-import { Save, CheckCircle } from 'lucide-react';
+import { Save, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
 
 export default function HeroSettings({ data, onRefresh }) {
@@ -18,16 +18,43 @@ export default function HeroSettings({ data, onRefresh }) {
     price_text: data?.price_text || data?.priceText || '₹89 Lakhs*',
     price_subtext: data?.price_subtext || data?.priceSubtext || 'onwards',
     hero_image: data?.hero_image || '',
+    banners: Array.isArray(data?.banners) ? data.banners : [],
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+
+  const updateBanner = (index, field, value) => {
+    setFormData((previous) => ({
+      ...previous,
+      banners: previous.banners.map((banner, currentIndex) =>
+        currentIndex === index ? { ...banner, [field]: value } : banner
+      ),
+    }));
+  };
+
+  const addBanner = () => {
+    setFormData((previous) => ({
+      ...previous,
+      banners: [...previous.banners, { img: '', title: '', sub: '' }],
+    }));
+  };
+
+  const removeBanner = (index) => {
+    setFormData((previous) => ({
+      ...previous,
+      banners: previous.banners.filter((_, currentIndex) => currentIndex !== index),
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setMessage('');
     try {
-      await updateHero(formData);
+      await updateHero({
+        ...formData,
+        banners: formData.banners.filter((banner) => (banner.img || banner.image_url || '').trim()),
+      });
       setMessage('Hero section updated successfully!');
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -150,10 +177,43 @@ export default function HeroSettings({ data, onRefresh }) {
 
         <div>
           <FileUpload
-            label="Hero Section Skyline / Background Render"
+            label="Fallback Hero Background (used when no slides are configured)"
             value={formData.hero_image || ''}
             onChange={(url) => setFormData({ ...formData, hero_image: url })}
           />
+        </div>
+
+        <div className="space-y-4 border-t border-slate-100 pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Hero Slider Images</h3>
+              <p className="text-xs text-slate-500 mt-1">Upload, caption, and reorder the images shown in the hero slider.</p>
+            </div>
+            <button type="button" onClick={addBanner} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white cursor-pointer">
+              <Plus size={15} /> Add slide
+            </button>
+          </div>
+          {formData.banners.map((banner, index) => (
+            <div key={index} className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
+              <div className="flex items-center justify-between md:col-span-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-slate-600">Slide {index + 1}</span>
+                <button type="button" onClick={() => removeBanner(index)} aria-label={`Remove slide ${index + 1}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50 cursor-pointer">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              <FileUpload label="Slide Image" value={banner.img || banner.image_url || ''} onChange={(url) => updateBanner(index, 'img', url)} />
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">Caption</label>
+                  <input value={banner.title || ''} onChange={(e) => updateBanner(index, 'title', e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-600">Subtitle</label>
+                  <input value={banner.sub || ''} onChange={(e) => updateBanner(index, 'sub', e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="pt-5 border-t border-slate-100 flex justify-end">

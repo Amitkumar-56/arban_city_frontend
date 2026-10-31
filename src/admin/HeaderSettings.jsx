@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { updateHeader } from './api';
+import { useState } from 'react';
+import { resolveAssetUrl, updateHeader } from './api';
 import { Save, CheckCircle, Image, Type, Plus, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
+import PartnerLogo from '../components/PartnerLogo';
 
 export default function HeaderSettings({ data, onRefresh }) {
   let initialBullets = [
@@ -19,7 +20,9 @@ export default function HeaderSettings({ data, onRefresh }) {
       if (Array.isArray(parsed) && parsed.length > 0) {
         initialBullets = parsed;
       }
-    } catch (e) {}
+    } catch {
+      console.error('Invalid footer bullet data; using default footer bullets.');
+    }
   }
 
   const [formData, setFormData] = useState({
@@ -27,6 +30,7 @@ export default function HeaderSettings({ data, onRefresh }) {
     logo_type: data?.logo_type || 'text',
     logo_text: data?.logo_text || 'Arban',
     logo_highlight: data?.logo_highlight || 'City',
+    subtitle: data?.subtitle || 'SECTOR ZERO',
     logo_image: data?.logo_image || '',
     partner_badge: data?.partner_badge || 'DigiPACE',
     partner_logo: data?.partner_logo || '',
@@ -34,10 +38,12 @@ export default function HeaderSettings({ data, onRefresh }) {
     email: data?.email || 'info@arban-city.com',
     footer_disclaimer:
       data?.footer_disclaimer ||
-      'The information provided on this website is intended exclusively for informational purposes and should not be construed as an offer of services. This site is managed by a RERA authorized real estate agent namely Digipace Consulting (OPC) Private Limited (Registered Agent bearing RERA No: A51700026634).',
+      'The information provided on this website is intended exclusively for informational purposes and should not be construed as an offer of services. This site is managed by a RERA authorized real estate agent namely Digipace Consulting (OPC) Private Limited (Registered Agent bearing RERA No: {{AGENT_RERA}}).',
   });
 
   const [bullets, setBullets] = useState(initialBullets);
+  const [failedLogoImage, setFailedLogoImage] = useState('');
+  const [failedPartnerLogo, setFailedPartnerLogo] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -92,6 +98,44 @@ export default function HeaderSettings({ data, onRefresh }) {
         </div>
       )}
 
+      {/* Live Logo Preview Box */}
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Live Header Logo Preview</span>
+        <div className="inline-flex items-center gap-3 bg-white p-2.5 border border-slate-200 rounded-lg shadow-xs">
+          {formData.logo_type === 'image' && formData.logo_image && failedLogoImage !== formData.logo_image ? (
+            <img
+              src={resolveAssetUrl(formData.logo_image)}
+              alt="Logo Preview"
+              className="h-9 max-w-[140px] object-contain"
+              onError={() => setFailedLogoImage(formData.logo_image)}
+            />
+          ) : (
+            <div className="border-[1.5px] border-[#F26635] px-2.5 py-1 font-['Manrope',sans-serif] font-extrabold text-[15px] leading-tight text-[#111D46] flex flex-col justify-center">
+              <div>
+                {formData.logo_text || 'Arban'}{' '}
+                <span className="text-[#F26635]">{formData.logo_highlight || 'City'}</span>
+              </div>
+              <small className="block font-bold text-[7px] tracking-[2px] text-[#67748A] mt-0.5 uppercase">
+                {formData.subtitle || 'SECTOR ZERO'}
+              </small>
+            </div>
+          )}
+          <span className="w-px h-6 bg-slate-200"></span>
+          {formData.partner_logo && failedPartnerLogo !== formData.partner_logo ? (
+            <img
+              src={resolveAssetUrl(formData.partner_logo)}
+              alt="Partner Logo Preview"
+              className="h-7 max-w-[90px] object-contain"
+              onError={() => setFailedPartnerLogo(formData.partner_logo)}
+            />
+          ) : formData.partner_badge && formData.partner_badge !== 'DigiPACE' ? (
+            <span className="w-[90px] text-right text-xs font-extrabold text-[#111D46]">{formData.partner_badge}</span>
+          ) : (
+            <PartnerLogo className="h-7 w-[90px] object-contain" />
+          )}
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Project Logo Selection */}
         <div>
@@ -133,7 +177,7 @@ export default function HeaderSettings({ data, onRefresh }) {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Primary Logo Text</label>
               <input
@@ -142,6 +186,7 @@ export default function HeaderSettings({ data, onRefresh }) {
                 value={formData.logo_text || ''}
                 onChange={(e) => setFormData({ ...formData, logo_text: e.target.value })}
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
+                placeholder="e.g. Arban"
               />
             </div>
 
@@ -153,6 +198,18 @@ export default function HeaderSettings({ data, onRefresh }) {
                 value={formData.logo_highlight || ''}
                 onChange={(e) => setFormData({ ...formData, logo_highlight: e.target.value })}
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
+                placeholder="e.g. City"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1.5">Subtitle Text (Below Logo)</label>
+              <input
+                type="text"
+                value={formData.subtitle || ''}
+                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
+                placeholder="e.g. SECTOR ZERO"
               />
             </div>
           </div>

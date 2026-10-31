@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { updateConstruction } from './api';
 import { Save, CheckCircle, Plus, Trash2, HardHat } from 'lucide-react';
 import FileUpload from './FileUpload';
+
+const DEFAULT_DESCRIPTION =
+  'View real-time {{CURRENT_MONTH_YEAR}} construction status for {{PROJECT_NAME}} in {{LOCATION}}.';
+const LEGACY_DEFAULT_DESCRIPTION =
+  'Real progress. Real pictures. Your future home is taking shape, one milestone at a time.';
 
 export default function ConstructionSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
     title: data?.title || 'Construction Status',
     description:
-      data?.description ||
-      'Real progress. Real pictures. Your future home is taking shape, one milestone at a time.',
-    images: data?.images || [],
+      data?.description && data.description !== LEGACY_DEFAULT_DESCRIPTION
+        ? data.description
+        : DEFAULT_DESCRIPTION,
+    images: (data?.images || data?.cards || []).map((image, index) => (
+      typeof image === 'string'
+        ? { img: image, title: `Construction Update ${index + 1}` }
+        : { ...image, img: image.img || image.image_url || '' }
+    )),
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -17,13 +27,13 @@ export default function ConstructionSettings({ data, onRefresh }) {
   const handleAddImage = () => {
     setFormData({
       ...formData,
-      images: [...formData.images, ''],
+      images: [...formData.images, { img: '', title: `Construction Update ${formData.images.length + 1}` }],
     });
   };
 
   const handleImageChange = (index, url) => {
     const updated = [...formData.images];
-    updated[index] = url;
+    updated[index] = { ...updated[index], img: url };
     setFormData({ ...formData, images: updated });
   };
 
@@ -92,6 +102,9 @@ export default function ConstructionSettings({ data, onRefresh }) {
 
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-1.5">Status Description</label>
+          <p className="text-xs text-slate-500 mb-2">
+            Tokens {'{{CURRENT_MONTH_YEAR}}'}, {'{{PROJECT_NAME}}'}, and {'{{LOCATION}}'} are filled automatically.
+          </p>
           <textarea
             rows={3}
             value={formData.description}
@@ -118,8 +131,19 @@ export default function ConstructionSettings({ data, onRefresh }) {
                   </button>
                 </div>
 
+                <input
+                  type="text"
+                  value={typeof imgUrl === 'string' ? '' : imgUrl.title || ''}
+                  placeholder="Photo caption"
+                  onChange={(event) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], title: event.target.value };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                />
                 <FileUpload
-                  value={imgUrl || ''}
+                  value={typeof imgUrl === 'string' ? imgUrl : imgUrl.img || ''}
                   onChange={(url) => handleImageChange(index, url)}
                 />
               </div>

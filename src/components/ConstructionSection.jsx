@@ -1,97 +1,143 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, HardHat } from 'lucide-react';
+import { useRef } from 'react';
 import constructionImg from '../assets/construction.webp';
+import banner1 from '../assets/banner1_min.webp';
+import banner2 from '../assets/banner2_min.webp';
+import heroSkyline from '../assets/hero_skyline.webp';
+import { resolveAssetUrl } from '../admin/api';
 
-export default function ConstructionSection({ data }) {
-  const rawUploaded = Array.isArray(data?.images) ? data.images : [];
-  const validPhotos = rawUploaded.filter(Boolean);
-  const constructionPhotos = validPhotos.length > 0 ? validPhotos : [constructionImg];
-  const [currentPhoto, setCurrentPhoto] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+const DEFAULT_DESCRIPTION =
+  'View real-time {{CURRENT_MONTH_YEAR}} construction status for {{PROJECT_NAME}} in {{LOCATION}}.';
+const LEGACY_DEFAULT_DESCRIPTION =
+  'Real progress. Real pictures. Your future home is taking shape, one milestone at a time.';
 
-  useEffect(() => {
-    if (isPaused || constructionPhotos.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentPhoto((prev) => (prev >= constructionPhotos.length - 1 ? 0 : prev + 1));
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [isPaused, constructionPhotos.length]);
-
+export default function ConstructionSection({
+  data,
+  onOpenModal,
+  projectName = 'Aveon City Sector Zero',
+  location = 'Airoli, Navi Mumbai',
+}) {
+  const trackRef = useRef(null);
+  const month = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(new Date());
+  const descriptionTemplate = data?.description && data.description !== LEGACY_DEFAULT_DESCRIPTION
+    ? data.description
+    : DEFAULT_DESCRIPTION;
+  const description = descriptionTemplate.replace(
+    /\{\{(CURRENT_MONTH_YEAR|PROJECT_NAME|LOCATION)\}\}/g,
+    (_, key) => ({
+      CURRENT_MONTH_YEAR: month,
+      PROJECT_NAME: projectName,
+      LOCATION: location,
+    })[key]
+  );
   const title = data?.title || 'Construction Status';
-  const description =
-    data?.description ||
-    'Real progress. Real pictures. Your future home is taking shape, one milestone at a time.';
 
-  const prevPhoto = () => {
-    setCurrentPhoto((prev) => (prev === 0 ? constructionPhotos.length - 1 : prev - 1));
+  const defaultCards = [
+    {
+      img: constructionImg,
+      title: 'Tower A Piling & Raft Completed',
+    },
+    {
+      img: banner1,
+      title: 'Tower B Podium Slab Work in Full Swing',
+    },
+    {
+      img: banner2,
+      title: 'Tower C Excavation & Foundation Shoring',
+    },
+    {
+      img: heroSkyline,
+      title: 'Main Access Road & Boundary Infrastructure',
+    },
+  ];
+
+  const configuredCards = Array.isArray(data?.cards) && data.cards.length > 0
+    ? data.cards
+    : Array.isArray(data?.images) && data.images.length > 0
+      ? data.images
+      : [];
+  const cards = configuredCards.length > 0
+    ? configuredCards.map((card, index) => (
+        typeof card === 'string'
+          ? { img: card, title: `Construction Update ${index + 1}` }
+          : { ...card, img: card.img || card.image_url || card.image || constructionImg }
+      ))
+    : defaultCards;
+
+  const scrollLeft = () => {
+    if (trackRef.current) {
+      trackRef.current.scrollBy({ left: -260, behavior: 'smooth' });
+    }
   };
 
-  const nextPhoto = () => {
-    setCurrentPhoto((prev) => (prev === constructionPhotos.length - 1 ? 0 : prev + 1));
+  const scrollRight = () => {
+    if (trackRef.current) {
+      trackRef.current.scrollBy({ left: 260, behavior: 'smooth' });
+    }
   };
-
-  const safeIndex = constructionPhotos.length > 0 ? Math.abs(currentPhoto) % constructionPhotos.length : 0;
-  const currentPhotoUrl = constructionPhotos[safeIndex] || constructionImg;
 
   return (
-    <section id="construction" className="scroll-mt-20 bg-white rounded-none border-l-0 border-y border-r border-gray-200/80 shadow-2xs p-5 sm:p-8 mb-4 overflow-hidden">
-      <div className="text-center mb-7 max-w-2xl mx-auto">
-        <div className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-wider mb-2">
-          On-Site Development
+    <section className="section-card" id="construction">
+      <h2 className="section-h2">{projectName} {title}</h2>
+      <p className="section-intro">
+        {description}
+      </p>
+
+      <div className="relative mt-5">
+        {cards.length > 3 && (
+          <button
+            className="hidden md:flex absolute -left-3.5 top-[100px] -translate-y-1/2 w-9.5 h-9.5 rounded-full border-0 bg-[#111D46] text-white font-bold text-lg items-center justify-center z-10 shadow-lg cursor-pointer hover:bg-[#1d2a4a] transition-colors"
+            type="button"
+            aria-label="Previous photo"
+            onClick={scrollLeft}
+          >
+            ‹
+          </button>
+        )}
+
+        <div
+          className={`flex gap-3.5 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory ${
+            cards.length <= 2 ? 'justify-center' : ''
+          }`}
+          ref={trackRef}
+        >
+          {cards.map((c, idx) => (
+            <figure
+              key={idx}
+              className="flex-[0_0_82%] sm:flex-[0_0_calc((100%-28px)/3)] lg:flex-[0_0_calc((100%-42px)/4)] snap-start m-0 group shrink-0"
+            >
+              <button
+                type="button"
+                className="border-0 p-0 w-full rounded-xl overflow-hidden cursor-zoom-in block bg-[#dde3ec] shadow-sm"
+                onClick={() => onOpenModal && onOpenModal(`Construction Progress - ${c.title}`)}
+              >
+                <img
+                  src={resolveAssetUrl(c.img || c.image || constructionImg)}
+                  alt={c.title}
+                  className="w-full h-[190px] md:h-[200px] object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </button>
+              <figcaption className="text-center font-bold text-xs text-[#111D46] mt-2 leading-snug">
+                {c.title}
+              </figcaption>
+            </figure>
+          ))}
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-[#0f2444] tracking-tight">
-          {title}
-        </h2>
-        {description && (
-          <p className="text-sm sm:text-base text-gray-600 mt-2 font-medium">
-            {description}
-          </p>
+
+        {cards.length > 3 && (
+          <button
+            className="hidden md:flex absolute -right-3.5 top-[100px] -translate-y-1/2 w-9.5 h-9.5 rounded-full border-0 bg-[#111D46] text-white font-bold text-lg items-center justify-center z-10 shadow-lg cursor-pointer hover:bg-[#1d2a4a] transition-colors"
+            type="button"
+            aria-label="Next photo"
+            onClick={scrollRight}
+          >
+            ›
+          </button>
         )}
       </div>
 
-      <div
-        className="relative max-w-3xl mx-auto rounded-2xl overflow-hidden aspect-[16/9] bg-slate-900 shadow-md group"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <img
-          src={currentPhotoUrl}
-          alt={title}
-          data-caption="Arban City Live Construction Status"
-          className="w-full h-full object-cover object-center transition-all duration-500"
-        />
-
-        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 flex items-center justify-between text-white">
-          <div className="flex items-center gap-2">
-            <HardHat size={18} className="text-amber-400" />
-            <span className="text-xs sm:text-sm font-bold">
-              Site Progress Snapshot {currentPhoto + 1}
-            </span>
-          </div>
-          <span className="text-xs bg-white/20 px-2.5 py-1 rounded-md backdrop-blur-xs font-semibold">
-            {currentPhoto + 1} / {constructionPhotos.length}
-          </span>
-        </div>
-
-        {constructionPhotos.length > 1 && (
-          <>
-            <button
-              onClick={prevPhoto}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-gray-800 shadow-md flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
-              aria-label="Previous Photo"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              onClick={nextPhoto}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-gray-800 shadow-md flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
-              aria-label="Next Photo"
-            >
-              <ChevronRight size={22} />
-            </button>
-          </>
-        )}
-      </div>
+      <p className="block md:hidden text-center font-medium text-xs text-[#5b6678] mt-3">
+        Swipe to see more updates →
+      </p>
     </section>
   );
 }

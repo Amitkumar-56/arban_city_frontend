@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { updateMeta, uploadFile } from './api';
+import { useState } from 'react';
+import { resolveAssetUrl, updateMeta, uploadFile } from './api';
 import {
   Globe,
   Save,
@@ -419,7 +419,7 @@ export default function MetaSettings({ data, onRefresh }) {
               <div className="max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
                 {formData.og_image ? (
                   <div className="aspect-[16/9] bg-slate-100 overflow-hidden">
-                    <img src={formData.og_image} alt="OG Preview" className="w-full h-full object-cover" />
+                    <img src={resolveAssetUrl(formData.og_image)} alt="OG Preview" className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="aspect-[16/9] bg-slate-100 flex items-center justify-center text-slate-400 text-xs">

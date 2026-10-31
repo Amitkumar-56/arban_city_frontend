@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { updateVideo } from './api';
 import { Save, CheckCircle, Video as VideoIcon } from 'lucide-react';
 import FileUpload from './FileUpload';
@@ -11,6 +11,7 @@ export default function VideoSettings({ data, onRefresh }) {
       'Take a virtual tour of Arban City and experience the spaces, amenities and lifestyle it has to offer.',
     video_url: data?.video_url || '',
     video_thumbnail: data?.video_thumbnail || '',
+    sample_flat_image: data?.sample_flat_image || '',
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -88,6 +89,14 @@ export default function VideoSettings({ data, onRefresh }) {
               accept="image/*"
               value={formData.video_thumbnail || ''}
               onChange={(url) => setFormData({ ...formData, video_thumbnail: url })}
+            />
+          </div>
+          <div>
+            <FileUpload
+              label="Sample Flat Tour Image"
+              accept="image/*"
+              value={formData.sample_flat_image || ''}
+              onChange={(url) => setFormData({ ...formData, sample_flat_image: url })}
             />
           </div>
         </div>

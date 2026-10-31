@@ -1,45 +1,94 @@
-import React from 'react';
-import { Download, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
 
-export default function Amenities({ data, onOpenModal, projectTitle = 'Arban City Sector 0' }) {
-  const externalAmenities = Array.isArray(data?.external) && data.external.length > 0
-    ? data.external
-    : ['Dual Luxury Clubhouses', 'Elevated Nature Walk', 'Reflexology Walking Trail', 'Eco-Smart Sustainable Systems', 'Spa, Sauna & Jacuzzi', 'Kids’ Pool & Mini Theatre'];
+export default function Amenities({ data, projectTitle = 'Aveon City Sector Zero' }) {
+  const [extOpen, setExtOpen] = useState(false);
+  const [intOpen, setIntOpen] = useState(false);
 
-  const internalAmenities = Array.isArray(data?.internal) && data.internal.length > 0
-    ? data.internal
-    : ['Grand Banquet Hall', 'Rooftop Infinity Edge Pool', 'Squash & Badminton Arena', 'High-Speed Automated Elevators', 'EV Charging Infrastructure', 'Multi-Tier 24x7 Security'];
+  const defaultExternal = [
+    'Swimming Pool & Kids Pool',
+    'Grand Clubhouse with Lounge',
+    'Fully Equipped Modern Gymnasium',
+    'Landscaped Podium Garden & Lawns',
+    'Children’s Dedicated Play Area',
+    'Jogging & Walking Track',
+    'Yoga & Meditation Deck',
+    'Multipurpose Sports Court',
+    'Senior Citizens Gazebo Seating',
+    'Indoor Games Arena (Table Tennis, Carrom, Chess)',
+    'Rooftop Stargazing Deck',
+    'Grand Entrance Lobby with High Ceilings',
+  ];
 
-  const allAmenities = [...externalAmenities, ...internalAmenities];
+  const defaultInternal = [
+    'Vitrified Tile Flooring in All Rooms',
+    'Granite Kitchen Platform with SS Sink',
+    'Branded Sanitary Ware & CP Bath Fittings',
+    'Video Door Phone & Intercom Facility',
+    'Concealed Copper Wiring with Modular Switches',
+    'Powder-Coated Aluminium Sliding Windows',
+    'Provision for Inverter & Water Purifier',
+    'Anti-skid Ceramic Tiles in Bathrooms & Balconies',
+    'Laminated Flush Doors with Premium Hardware',
+    'AC Points Provision in Living & Bedrooms',
+  ];
+
+  const externalList = Array.isArray(data?.external) && data.external.length > 0 ? data.external : defaultExternal;
+  const internalList = Array.isArray(data?.internal) && data.internal.length > 0 ? data.internal : defaultInternal;
 
   return (
-    <section id="amenities" className="scroll-mt-20 bg-white rounded-none border-l-0 border-y border-r border-gray-200/80 shadow-2xs p-5 sm:p-8 mb-4">
-      {/* Top Header Row matching Kohinoor */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-          Amenities Of {projectTitle}
-        </h2>
-        <button
-          type="button"
-          onClick={() => onOpenModal && onOpenModal('Download Amenities Brochure')}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#8f7635] hover:bg-[#7a642b] text-white font-extrabold text-xs sm:text-sm rounded-md transition-all cursor-pointer shadow-xs uppercase tracking-wide shrink-0 self-start sm:self-auto"
-        >
-          <Download size={16} />
-          <span>Download Amenities</span>
-        </button>
-      </div>
+    <section className="section-card" id="amenities">
+      <h2 className="section-h2">Amenities &amp; Internal Features</h2>
+      <p className="section-intro text=[14px]" style={{ maxWidth: 920 }}>
+        Elevate your lifestyle at {projectTitle} with over <b className="text-[#111D46] font-bold">35+ premium amenities</b>, from a <b className="text-[#111D46] font-bold">Swimming Pool</b> to a fully equipped <b className="text-[#111D46] font-bold">Gymnasium</b>, focused on wellness, recreation and relaxation.
+      </p>
 
-      {/* Clean Boxed Amenity List matching Kohinoor */}
-      <div className="bg-slate-50/60 rounded-md border border-gray-200 p-5 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-3.5">
-          {allAmenities.map((amenity, idx) => (
-            <div key={idx} className="flex items-center gap-2.5 text-gray-800 text-xs sm:text-sm font-bold">
-              <span className="w-4 h-4 rounded bg-[#8f7635] text-white flex items-center justify-center shrink-0">
-                <ChevronRight size={13} className="stroke-[3]" />
-              </span>
-              <span className="truncate">{amenity}</span>
-            </div>
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mt-5">
+        {/* External Amenities */}
+        <div>
+          <h3 className="font-['Manrope',sans-serif] text-lg md:text-xl font-bold text-[#111D46] text-center mb-2.5">
+            External Amenities
+          </h3>
+          <div className="border border-[#D5D9DF] rounded-xl p-3.5 md:p-5 bg-white min-h-[207px] max-md:min-h-0">
+            <ul className="m-0 pl-5 text-xs md:text-[14px] leading-relaxed md:leading-[1.85] text-[#18243E] list-disc space-y-1">
+              {externalList.map((item, idx) => {
+                if (idx >= 6 && !extOpen) return null;
+                return <li key={idx}>{item}</li>;
+              })}
+            </ul>
+            {externalList.length > 6 && (
+              <button
+                className="block mx-auto mt-2.5 border-0 bg-transparent text-[#C16C46] font-bold text-xs md:text-[13px] cursor-pointer hover:underline"
+                type="button"
+                onClick={() => setExtOpen(!extOpen)}
+              >
+                {extOpen ? 'Show Less ↑' : 'Read More ↓'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Internal Features */}
+        <div>
+          <h3 className="font-['Manrope',sans-serif] text-lg md:text-xl font-bold text-[#111D46] text-center mb-2.5">
+            Internal Features
+          </h3>
+          <div className="border border-[#D5D9DF] rounded-xl p-3.5 md:p-5 bg-white min-h-[207px] max-md:min-h-0">
+            <ul className="m-0 pl-5 text-xs md:text-[14px] leading-relaxed md:leading-[1.85] text-[#18243E] list-disc space-y-1">
+              {internalList.map((item, idx) => {
+                if (idx >= 6 && !intOpen) return null;
+                return <li key={idx}>{item}</li>;
+              })}
+            </ul>
+            {internalList.length > 6 && (
+              <button
+                className="block mx-auto mt-2.5 border-0 bg-transparent text-[#C16C46] font-bold text-xs md:text-[14px] cursor-pointer hover:underline"
+                type="button"
+                onClick={() => setIntOpen(!intOpen)}
+              >
+                {intOpen ? 'Show Less ↑' : 'Read More ↓'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>

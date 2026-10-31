@@ -1,147 +1,176 @@
-import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import reraQrImg from '../assets/rera_qr.webp';
+import { resolveAssetUrl } from '../admin/api';
 
-const SocialIcon = ({ type }) => {
-  switch (type) {
-    case 'facebook':
-      return (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-        </svg>
-      );
-    case 'instagram':
-      return (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-        </svg>
-      );
-    case 'linkedin':
-      return (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-        </svg>
-      );
-    case 'youtube':
-      return (
-        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-        </svg>
-      );
-    default:
-      return <ExternalLink size={18} />;
-  }
-};
+export default function DeveloperAndRera({ data, projectTitle = 'Aveon City Sector Zero' }) {
+  const devName = data?.company_name || data?.name || 'Delta Tricity';
+  const desc = data?.description || (
+    <>
+      <b className="text-[#111D46] font-bold">{devName}</b> presents {projectTitle} in Airoli, Navi Mumbai — planned residential towers, a range of apartment configurations and shared lifestyle facilities, designed for families who want city access with open, green surroundings.
+    </>
+  );
 
-export default function DeveloperAndRera({ data }) {
-  const companyName = data?.company_name || data?.name || 'Delta & Tricity Group';
-  const description =
-    data?.description ||
-    'Delta & Tricity Group is a renowned landmark real estate developer delivering iconic residential projects with superior construction quality, timely possession and exceptional customer satisfaction.';
+  const rawProjectQr = data?.qr_image || data?.project_qr;
+  const projectQr = (rawProjectQr && typeof rawProjectQr === 'string' && rawProjectQr.trim() !== '')
+    ? rawProjectQr.trim()
+    : (reraQrImg || '/rera_qr.webp');
+
+  const rawDigipaceQr = data?.digipace_qr;
+  const digipaceQr = (rawDigipaceQr && typeof rawDigipaceQr === 'string' && rawDigipaceQr.trim() !== '')
+    ? rawDigipaceQr.trim()
+    : (reraQrImg || '/rera_qr.webp');
+  const devLogo = data?.developer_logo;
   const projectRera = data?.project_rera || 'PR1260002501680';
-  const projectQr = data?.qr_image || reraQrImg;
-  const digipaceRera = data?.digipace_rera || 'A51700026634';
-  const digipaceQr = data?.digipace_qr || '';
-  const mahareraUrl = data?.maharera_website || 'https://maharera.maharashtra.gov.in/';
+  const agentRera = data?.digipace_rera || data?.agent_rera || 'A51700026634';
 
-  const socialLinks = [
-    { type: 'facebook', href: data?.social_facebook || 'https://facebook.com', label: 'Facebook' },
-    { type: 'instagram', href: data?.social_instagram || 'https://instagram.com', label: 'Instagram' },
-    { type: 'linkedin', href: data?.social_linkedin || 'https://linkedin.com', label: 'LinkedIn' },
-    { type: 'youtube', href: data?.social_youtube || 'https://youtube.com', label: 'YouTube' },
-  ].filter((s) => s.href);
+  const [activeQrSlide, setActiveQrSlide] = useState(0);
+
+  // Auto-slide between Project QR and DigiPace QR
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveQrSlide((prev) => (prev === 0 ? 1 : 0));
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <section id="developer" className="scroll-mt-20 bg-white rounded-none border-l-0 border-y border-r border-gray-200/80 shadow-2xs p-5 sm:p-8 mb-4 overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Developer Information without logo, with Social Media */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
-            Landmark Developer
+    <section className="section-card" id="developer">
+      <div className="grid grid-cols-1 md:grid-cols-[1.12fr_1fr] gap-6.5 items-center">
+        {/* Left Column: About Developer */}
+        <div>
+          <div className="flex items-center gap-3.5 mb-2">
+            {devLogo && (
+              <img
+                src={resolveAssetUrl(devLogo)}
+                alt={`${devName} Logo`}
+                className="h-10 md:h-12 max-w-[120px] object-contain rounded p-1 border border-[#E2E7EE] bg-white shadow-xs"
+              />
+            )}
+            <h2 className="section-h2 text-center md:text-left m-0">About Developer</h2>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0f2444] tracking-tight">
-            About {companyName}
-          </h2>
-          <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-medium">
-            {description}
-          </p>
-
-          {/* Social Media Icons */}
-          <div className="pt-2">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2.5">
-              Connect With Us
-            </span>
-            <div className="flex items-center gap-2.5">
-              {socialLinks.map((item) => (
-                <a
-                  key={item.type}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={item.label}
-                  className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-[#e2572b] text-slate-700 hover:text-white flex items-center justify-center transition-all shadow-2xs hover:shadow-sm"
-                >
-                  <SocialIcon type={item.type} />
-                </a>
-              ))}
-            </div>
+          <p className="text-xs md:text-sm leading-relaxed text-[#535F73] mt-2">{desc}</p>
+          <div className="flex gap-2.5 justify-center md:justify-start mt-4">
+            {/* Facebook */}
+            <a
+              href={data?.social_facebook || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="w-9 h-9 rounded-full border-[1.5px] border-[#C9D1DE] flex items-center justify-center text-[#111D46] hover:border-[#F26635] hover:text-[#F26635] hover:-translate-y-0.5 transition-all shadow-xs"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+              </svg>
+            </a>
+            {/* Instagram */}
+            <a
+              href={data?.social_instagram || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="w-9 h-9 rounded-full border-[1.5px] border-[#C9D1DE] flex items-center justify-center text-[#111D46] hover:border-[#F26635] hover:text-[#F26635] hover:-translate-y-0.5 transition-all shadow-xs"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="none" stroke="currentColor" strokeWidth="2" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </a>
+            {/* LinkedIn */}
+            <a
+              href={data?.social_linkedin || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="w-9 h-9 rounded-full border-[1.5px] border-[#C9D1DE] flex items-center justify-center text-[#111D46] hover:border-[#F26635] hover:text-[#F26635] hover:-translate-y-0.5 transition-all shadow-xs"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
+                <circle cx="4" cy="4" r="2" />
+              </svg>
+            </a>
+            {/* YouTube */}
+            <a
+              href={data?.social_youtube || undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              className="w-9 h-9 rounded-full border-[1.5px] border-[#C9D1DE] flex items-center justify-center text-[#111D46] hover:border-[#F26635] hover:text-[#F26635] hover:-translate-y-0.5 transition-all shadow-xs"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                <path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.43z" />
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff" />
+              </svg>
+            </a>
           </div>
         </div>
 
-        {/* Right Column: SectorZero Style MahaRERA Compliance Box */}
-        <div className="lg:col-span-6 bg-slate-50/80 rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
-          <div className="text-center pb-3 border-b border-slate-200">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-              Official MahaRERA Website
-            </span>
-            <a
-              href={mahareraUrl}
-              target="_blank"
-              rel="nofollow noopener noreferrer external"
-              className="inline-flex items-center gap-1.5 text-sm sm:text-base font-extrabold text-[#24686d] hover:text-[#e2572b] transition-colors mt-0.5"
-            >
-              <span>maharera.maharashtra.gov.in</span>
-              <ExternalLink size={14} />
-            </a>
+        {/* Right Column: Sliding MahaRERA Panel */}
+        <div className="bg-[#FBFCFE] border border-[#E2E7EE] rounded-xl p-5 md:p-5.5 grid grid-cols-1 sm:grid-cols-[42px_minmax(0,1fr)_82px] lg:grid-cols-[42px_minmax(0,1fr)_108px] gap-3 items-center text-center sm:text-left shadow-xs overflow-hidden relative">
+          <div className="w-10.5 h-10.5 rounded-full bg-[#EEF2FA] flex items-center justify-center mx-auto sm:mx-0 shrink-0">
+            <svg viewBox="0 0 24 24" className="w-5.5 h-5.5 stroke-[#111D46] fill-none stroke-[1.6]">
+              <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+              <path d="M8.5 12l2.5 2.5 4.5-5" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+              <span className="text-xs md:text-sm font-bold text-[#111D46]">
+                {activeQrSlide === 0 ? 'Project MahaRERA' : 'DigiPace MahaRERA'}
+              </span>
+            </div>
+            <b className="block text-xs md:text-sm text-[#111D46] tracking-wide mt-1">
+              {activeQrSlide === 0 ? projectRera : agentRera}
+            </b>
+
+            {/* Slide switch indicator dots */}
+            <div className="flex gap-1.5 mt-1 justify-center sm:justify-start">
+              <button
+                type="button"
+                onClick={() => setActiveQrSlide(0)}
+                className={`h-1.5 rounded-full transition-all border-0 cursor-pointer ${activeQrSlide === 0 ? 'w-4 bg-[#F26635]' : 'w-2 bg-[#D1D5DB]'}`}
+                aria-label="View Project MahaRERA"
+              />
+              <button
+                type="button"
+                onClick={() => setActiveQrSlide(1)}
+                className={`h-1.5 rounded-full transition-all border-0 cursor-pointer ${activeQrSlide === 1 ? 'w-4 bg-[#F26635]' : 'w-2 bg-[#D1D5DB]'}`}
+                aria-label="View DigiPace MahaRERA"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            {/* Box 1: Project MahaRERA No. */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-2xs flex flex-col items-center">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2 block">
-                Project MahaRERA No.
-              </span>
-              <div className="w-20 h-20 bg-white p-1 border border-slate-200 rounded-lg flex items-center justify-center shadow-2xs mb-2">
-                {projectQr ? (
-                  <img src={projectQr} alt={projectRera} className="w-full h-full object-contain" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                    QR Code
-                  </div>
-                )}
+          {/* Sliding QR Box */}
+          <div className="mx-auto sm:mx-0 shrink-0 relative w-[82px] h-[82px] lg:w-[108px] lg:h-[108px] overflow-hidden rounded-md border border-[#E2E7EE] bg-white p-1 shadow-2xs">
+            <div
+              className={`flex transition-transform duration-500 ease-in-out w-[148px] lg:w-[200px] h-full ${activeQrSlide === 1 ? '-translate-x-[74px] lg:-translate-x-[100px]' : 'translate-x-0'}`}
+            >
+              <div
+                className="w-[74px] lg:w-[100px] h-full flex flex-col items-center justify-center shrink-0"
+              >
+                <img
+                  src={resolveAssetUrl(projectQr)}
+                  alt="Project MahaRERA QR"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/rera_qr.webp';
+                  }}
+                  className="w-[68px] h-[68px] lg:w-[94px] lg:h-[94px] object-contain"
+                />
               </div>
-              <strong className="text-sm font-black text-[#0f2444] break-all tracking-tight">
-                {projectRera}
-              </strong>
-            </div>
-
-            {/* Box 2: Digipace MahaRERA No. */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-2xs flex flex-col items-center">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2 block">
-                Digipace MahaRERA No.
-              </span>
-              <div className="w-20 h-20 bg-white p-1 border border-slate-200 rounded-lg flex items-center justify-center shadow-2xs mb-2">
-                {digipaceQr ? (
-                  <img src={digipaceQr} alt={digipaceRera} className="w-full h-full object-contain" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                    QR Code
-                  </div>
-                )}
+              <div
+                className="w-[74px] lg:w-[100px] h-full flex flex-col items-center justify-center shrink-0"
+              >
+                <img
+                  src={resolveAssetUrl(digipaceQr)}
+                  alt="DigiPace MahaRERA QR"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/rera_qr.webp';
+                  }}
+                  className="w-[68px] h-[68px] lg:w-[94px] lg:h-[94px] object-contain"
+                />
               </div>
-              <strong className="text-sm font-black text-[#0f2444] break-all tracking-tight">
-                {digipaceRera}
-              </strong>
             </div>
           </div>
         </div>

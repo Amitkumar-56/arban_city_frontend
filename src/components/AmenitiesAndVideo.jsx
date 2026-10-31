@@ -20,7 +20,7 @@ export default function AmenitiesAndVideo({ data, videoData, onOpenModal }) {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f2444] break-words tracking-tight">
             Amenities
           </h2>
-          <p className="text-sm sm:text-base text-gray-600 mt-2 mb-7 break-words leading-relaxed font-medium">
+          <p className="text-sm sm:text-base text-gray-600 mt-2 mb-7 break-words leading-relaxed font-medium text=[14px]">
             Enjoy a host of modern lifestyle amenities designed to elevate your living experience and provide ultimate comfort.
           </p>
 
@@ -30,7 +30,7 @@ export default function AmenitiesAndVideo({ data, videoData, onOpenModal }) {
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3.5">
                   External Amenities
                 </h3>
-                <ul className="space-y-2.5 text-sm sm:text-[15px] font-medium text-gray-700">
+                <ul className="space-y-2.5 text-sm sm:text-[14px] font-medium text-gray-700">
                   {externalAmenities.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2.5">
                       <span className="w-2 h-2 rounded-full bg-[#e2572b] mt-1.5 shrink-0" />
@@ -46,7 +46,7 @@ export default function AmenitiesAndVideo({ data, videoData, onOpenModal }) {
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3.5">
                   Internal Amenities
                 </h3>
-                <ul className="space-y-2.5 text-sm sm:text-[15px] font-medium text-gray-700">
+                <ul className="space-y-2.5 text-sm sm:text-[14px] font-medium text-gray-700">
                   {internalAmenities.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2.5">
                       <span className="w-2 h-2 rounded-full bg-gray-400 mt-1.5 shrink-0" />
