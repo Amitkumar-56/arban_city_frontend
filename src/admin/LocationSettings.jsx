@@ -14,6 +14,8 @@ export default function LocationSettings({ data, onRefresh }) {
       data?.office_address ||
       data?.officeAddress ||
       'Balaji Tricity Delta Arban City, Thane - Belapur Road, Airoli, Navi Mumbai - 400708',
+    map_url: data?.map_url || data?.mapUrl || 'https://www.google.com/maps/search/?api=1&query=Sector+Zero+Airoli+Navi+Mumbai',
+    map_embed_code: data?.map_embed_code || data?.mapEmbedCode || '',
     landmarks: (data?.landmarks || [
       { id: 1, name: 'Satyam Hospital', travel_time: '5 Mins' },
       { id: 2, name: 'Flower Hospital', travel_time: '7 Mins' },
@@ -99,6 +101,43 @@ export default function LocationSettings({ data, onRefresh }) {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 leading-relaxed focus:outline-none focus:border-[#e2572b] focus:ring-2 focus:ring-[#e2572b]/20 transition-all"
           />
+        </div>
+
+        {/* Google Map Configuration */}
+        <div className="p-5 sm:p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <MapPin size={16} className="text-[#e2572b]" />
+            <span>Google Maps Settings</span>
+          </h3>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+              Google Maps URL (Open in Google Maps Button Link)
+            </label>
+            <input
+              type="url"
+              placeholder="https://www.google.com/maps/search/?api=1&query=Sector+Zero+Airoli+Navi+Mumbai"
+              value={formData.map_url || ''}
+              onChange={(e) => setFormData({ ...formData, map_url: e.target.value })}
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:border-[#e2572b]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+              Google Maps Embed Code / Iframe Link
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Paste Google Maps <iframe>...</iframe> or embed link (https://www.google.com/maps/embed?...)"
+              value={formData.map_embed_code || ''}
+              onChange={(e) => setFormData({ ...formData, map_embed_code: e.target.value })}
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:border-[#e2572b]"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              Google Maps par jakar <b>Share → Embed a map → Copy HTML</b> karein aur yahan paste karein. Khali rakhne par default vector map dikhega.
+            </p>
+          </div>
         </div>
 
         <div className="p-5 sm:p-6 bg-slate-50 border border-slate-200 rounded-2xl">

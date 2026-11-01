@@ -60,15 +60,20 @@ const DEFAULT_TOWERS = [
 ];
 
 export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
-  const [layoutMode, setLayoutMode] = useState('multiple'); // 'multiple' | 'single'
+  // Support both array payload and { items, pricing_mode, towers } object payload
+  const rawItems = Array.isArray(data) ? data : (data?.items || []);
+  const initialMode = data?.pricing_mode || 'multiple';
+  const customTowers = Array.isArray(data?.towers) && data.towers.length > 0 ? data.towers : DEFAULT_TOWERS;
+
+  const [layoutMode, setLayoutMode] = useState(initialMode); // 'multiple' | 'single'
   const [selectedTowerIdx, setSelectedTowerIdx] = useState(0);
   const [selectedPlanIdx, setSelectedPlanIdx] = useState(0);
 
   // If backend provided flat pricing data, use it; otherwise use full tower data
-  const hasCustomData = Array.isArray(data) && data.length > 0;
+  const hasCustomData = Array.isArray(rawItems) && rawItems.length > 0;
 
   const parsedCustomPlans = hasCustomData
-    ? data.map((d, i) => ({
+    ? rawItems.map((d, i) => ({
       type: d.type || d.unit_type || `Unit ${i + 1}`,
       carpet: (d.carpet || d.carpet_area || '').toString().replace(/sq\.?ft/i, '').trim(),
       price: d.price || 'Price on Request',
@@ -77,10 +82,13 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
     }))
     : null;
 
-  const currentTower = DEFAULT_TOWERS[selectedTowerIdx] || DEFAULT_TOWERS[0];
+  const towersList = customTowers;
+  const currentTower = towersList[selectedTowerIdx] || towersList[0] || DEFAULT_TOWERS[0];
   const activePlans = layoutMode === 'single'
-    ? (parsedCustomPlans || DEFAULT_TOWERS[0].plans)
-    : (parsedCustomPlans ? parsedCustomPlans : currentTower.plans);
+    ? (parsedCustomPlans || towersList[0]?.plans || DEFAULT_TOWERS[0].plans)
+    : (currentTower?.plans && currentTower.plans.length > 0
+        ? currentTower.plans
+        : (parsedCustomPlans || DEFAULT_TOWERS[0].plans));
 
   const safePlanIdx = selectedPlanIdx >= activePlans.length ? 0 : selectedPlanIdx;
   const currentPlan = activePlans[safePlanIdx] || activePlans[0];
@@ -122,11 +130,11 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
       {/* Tower Cards (Only visible in Multiple Towers mode) */}
       {layoutMode === 'multiple' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mb-5">
-          {DEFAULT_TOWERS.map((tower, idx) => {
+          {towersList.map((tower, idx) => {
             const isSelected = selectedTowerIdx === idx;
             return (
               <button
-                key={tower.id}
+                key={tower.id || idx}
                 type="button"
                 onClick={() => handleTowerSelect(idx)}
                 className={`py-3 px-4 rounded-xl border text-center transition-all cursor-pointer ${isSelected

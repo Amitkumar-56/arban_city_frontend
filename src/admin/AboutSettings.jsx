@@ -3,13 +3,20 @@ import { updateAbout } from './api';
 import { Save, CheckCircle } from 'lucide-react';
 
 export default function AboutSettings({ data, onRefresh }) {
-  const [formData, setFormData] = useState(
-    data || {
-      title: 'About Arban City Sector 0',
-      description:
-        'Arban City Sector 0 Navi Mumbai Airoli is a premium residential project by Delta Tricity spread across 5.5 acres. It offers 1, 2 & 3 BHK homes with world-class amenities, modern design and excellent connectivity.',
-    }
-  );
+  const [formData, setFormData] = useState({
+    title: data?.title || 'About Arban City Sector 0',
+    description:
+      data?.description ||
+      'Arban City Sector 0 Navi Mumbai Airoli is a premium residential project by Delta Tricity spread across 5.5 acres. It offers 1, 2 & 3 BHK homes with world-class amenities, modern design and excellent connectivity.',
+    paragraph2:
+      data?.paragraph2 !== undefined
+        ? data.paragraph2
+        : 'The project is positioned in Airoli, with access to the wider Navi Mumbai and Thane areas. Explore the available configurations, indicative carpet areas, floor plans, project gallery and amenities on this page to understand the development.',
+    paragraph3:
+      data?.paragraph3 !== undefined
+        ? data.paragraph3
+        : 'For the latest availability, final pricing, possession schedule and RERA documentation, request verified details from the sales team before making a decision.',
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -59,12 +66,34 @@ export default function AboutSettings({ data, onRefresh }) {
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">Project Narrative / Description</label>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Project Narrative / Paragraph 1</label>
           <textarea
-            rows={6}
+            rows={4}
             required
             value={formData.description || ''}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 leading-relaxed focus:outline-none focus:border-[#e2572b] focus:ring-2 focus:ring-[#e2572b]/20 transition-all"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Location &amp; Exploration Narrative / Paragraph 2</label>
+          <textarea
+            rows={3}
+            value={formData.paragraph2 || ''}
+            onChange={(e) => setFormData({ ...formData, paragraph2: e.target.value })}
+            placeholder="The project is positioned in Airoli, with access to the wider Navi Mumbai and Thane areas..."
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 leading-relaxed focus:outline-none focus:border-[#e2572b] focus:ring-2 focus:ring-[#e2572b]/20 transition-all"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Pricing &amp; RERA Disclaimer / Paragraph 3</label>
+          <textarea
+            rows={3}
+            value={formData.paragraph3 || ''}
+            onChange={(e) => setFormData({ ...formData, paragraph3: e.target.value })}
+            placeholder="For the latest availability, final pricing, possession schedule and RERA documentation..."
             className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 leading-relaxed focus:outline-none focus:border-[#e2572b] focus:ring-2 focus:ring-[#e2572b]/20 transition-all"
           />
         </div>

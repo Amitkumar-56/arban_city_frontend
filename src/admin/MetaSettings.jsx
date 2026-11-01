@@ -110,16 +110,16 @@ export default function MetaSettings({ data, onRefresh }) {
   ];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl admin-layout">
       {/* Top Header Card */}
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs sticky top-0 z-20">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <Globe size={26} />
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Globe size={24} />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Complete SEO &amp; Meta Tags Manager
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -129,17 +129,17 @@ export default function MetaSettings({ data, onRefresh }) {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 mt-6 pt-5 border-t border-slate-100">
+        {/* Navigation Tabs - Modern Pill Toolbar */}
+        <div className="flex flex-wrap items-center gap-2 mt-6 pt-5 border-t border-slate-100">
           {subTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveSubTab(tab.id)}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer ${
                 activeSubTab === tab.id
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+                  : 'bg-slate-100/90 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
               }`}
             >
               {tab.icon}
@@ -166,17 +166,27 @@ export default function MetaSettings({ data, onRefresh }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* TAB 1: BASIC SEO */}
         {activeSubTab === 'basic' && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5">
-            <h3 className="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
-              Search Engine Optimization (Google, Bing, Yahoo)
-            </h3>
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Search Engine Optimization (Google, Bing, Yahoo)
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Configure primary title, description, and keywords indexed by search crawlers.
+                </p>
+              </div>
+            </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Meta Title &lt;title&gt;
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>META TITLE</span>
+                  <span className="text-slate-400 font-mono text-[10px]">&lt;TITLE&gt;</span>
                 </label>
-                <span className="text-xs text-slate-400 font-medium">
+                <span className={`text-[11px] font-semibold ${
+                  (formData.meta_title?.length || 0) > 60 ? 'text-amber-600' : 'text-slate-400'
+                }`}>
                   {formData.meta_title?.length || 0} / 60 characters
                 </span>
               </div>
@@ -185,17 +195,20 @@ export default function MetaSettings({ data, onRefresh }) {
                 required
                 value={formData.meta_title || ''}
                 onChange={(e) => handleChange('meta_title', e.target.value)}
-                placeholder="e.g. Arban City Sector 0 | Luxury 1, 2 & 3 BHK in Airoli"
-                className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium"
+                placeholder="e.g. Arban City Sector 0 | Luxury 1, 2 & 3 BHK in Airoli, Navi Mumbai"
+                className="w-full px-4 py-3 text-sm bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-medium transition-all"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Meta Description &lt;meta name="description"&gt;
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>META DESCRIPTION</span>
+                  <span className="text-slate-400 font-mono text-[10px]">&lt;META NAME="DESCRIPTION"&gt;</span>
                 </label>
-                <span className="text-xs text-slate-400 font-medium">
+                <span className={`text-[11px] font-semibold ${
+                  (formData.meta_description?.length || 0) > 160 ? 'text-amber-600' : 'text-slate-400'
+                }`}>
                   {formData.meta_description?.length || 0} / 160 characters
                 </span>
               </div>
@@ -205,7 +218,7 @@ export default function MetaSettings({ data, onRefresh }) {
                 value={formData.meta_description || ''}
                 onChange={(e) => handleChange('meta_description', e.target.value)}
                 placeholder="Detailed summary displayed under the link in Google SERP results..."
-                className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium leading-relaxed"
+                className="w-full px-4 py-3 text-sm bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-medium leading-relaxed transition-all resize-y"
               />
             </div>
 

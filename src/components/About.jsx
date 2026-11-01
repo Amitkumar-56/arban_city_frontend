@@ -8,18 +8,30 @@ export default function About({ data, onOpenModal, projectTitle = 'Aveon City Se
     </>
   );
 
+  const p2 = data?.paragraph2 !== undefined && data?.paragraph2 !== ''
+    ? data.paragraph2
+    : 'The project is positioned in Airoli, with access to the wider Navi Mumbai and Thane areas. Explore the available configurations, indicative carpet areas, floor plans, project gallery and amenities on this page to understand the development.';
+
+  const p3 = data?.paragraph3 !== undefined && data?.paragraph3 !== ''
+    ? data.paragraph3
+    : 'For the latest availability, final pricing, possession schedule and RERA documentation, request verified details from the sales team before making a decision.';
+
   return (
     <section className="section-card" id="about">
       <h2 className="section-h2">{title}</h2>
       <p className="text-[14px] md:text-[14px] leading-[1.85] text-[#535F73] mt-3">
         {p1}
       </p>
-      <p className="text-[14px] md:text-[14px] leading-[1.85] text-[#535F73] mt-3">
-        The project is positioned in Airoli, with access to the wider Navi Mumbai and Thane areas. Explore the available configurations, indicative carpet areas, floor plans, project gallery and amenities on this page to understand the development.
-      </p>
-      <p className="text-[14px] md:text-[14px] leading-[1.85] text-[#535F73] mt-3">
-        For the latest availability, final pricing, possession schedule and RERA documentation, request verified details from the sales team before making a decision.
-      </p>
+      {p2 && (
+        <p className="text-[14px] md:text-[14px] leading-[1.85] text-[#535F73] mt-3">
+          {p2}
+        </p>
+      )}
+      {p3 && (
+        <p className="text-[14px] md:text-[14px] leading-[1.85] text-[#535F73] mt-3">
+          {p3}
+        </p>
+      )}
       <button
         className="flex mx-auto mt-5 items-center justify-center gap-2 h-11 px-6 border-0 rounded-lg font-['Manrope',sans-serif] font-extrabold text-sm text-white cursor-pointer fxGrad fxScale"
         type="button"
