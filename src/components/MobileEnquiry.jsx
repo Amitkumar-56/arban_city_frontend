@@ -102,7 +102,11 @@ export default function MobileEnquiry({ showToast }) {
             className="w-3.5 h-3.5 mt-0.5 shrink-0 accent-[#F26635]"
           />
           <span className="consent-copy text-[10px]">
-            I Consent to The Processing of Provided Data According To Privacy Policy | Terms &amp; Conditions, I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
+            I Consent to The Processing of Provided Data According To{' '}
+            <a href="#privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-[#F26635] font-semibold">
+              Privacy Policy &amp; Terms
+            </a>
+            , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
           </span>
         </label>
         <button

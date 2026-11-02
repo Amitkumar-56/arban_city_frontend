@@ -1,10 +1,7 @@
-import { useState } from 'react';
-import reraQrImg from '../assets/rera_qr.webp';
-import PrivacyPolicyModal from './PrivacyPolicyModal';
 import { resolveAssetUrl } from '../admin/api';
+import reraQrImg from '../assets/rera_qr.webp';
 
 export default function Footer({ developerData, privacyData, headerData }) {
-  const [privacyOpen, setPrivacyOpen] = useState(false);
   const agentRera = developerData?.digipace_rera || developerData?.agent_rera || 'A51700026634';
   const qrImage = developerData?.qr_image || reraQrImg;
 
@@ -63,22 +60,16 @@ export default function Footer({ developerData, privacyData, headerData }) {
         {/* Privacy Policy link & Copyright */}
         <div className="text-center text-[11px] text-[#9A9EA8] border-t border-white/10 mt-5 pt-3.5">
           <p className="mb-1">
-            <button
-              type="button"
-              onClick={() => setPrivacyOpen(true)}
-              className="text-[#B8BCC6] hover:text-[#EAB66D] underline text-xs cursor-pointer bg-transparent border-0"
+            <a
+              href="#privacy-policy"
+              className="text-[#B8BCC6] hover:text-[#EAB66D] underline text-xs cursor-pointer inline-block"
             >
               Privacy Policy &amp; Terms
-            </button>
+            </a>
           </p>
           © 2026 Digipace Consulting (OPC) Private Limited · All rights reserved
         </div>
       </div>
-      <PrivacyPolicyModal
-        isOpen={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-        privacyData={privacyData}
-      />
     </footer>
   );
 }

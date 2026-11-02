@@ -25,46 +25,51 @@ const EnquiryModal = React.lazy(() => import('./components/EnquiryModal'));
 const AdminLayout = React.lazy(() => import('./admin/AdminLayout'));
 const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage'));
 
-function DeferredSectionContent({ children, onReady }) {
-  useEffect(() => {
-    onReady();
-  }, [onReady]);
+class SectionErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  return children;
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Section Error caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
 }
 
-function DeferredSection({ children, anchorIds = [], minHeight = 340 }) {
+function DeferredSection({ children, anchorIds = [], minHeight = 280 }) {
   const sectionRef = useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isNearViewport, setIsNearViewport] = useState(
     () => (
       !('IntersectionObserver' in window)
       || anchorIds.includes(decodeURIComponent(window.location.hash.slice(1)))
     ),
   );
-  const anchorKey = anchorIds.join('|');
-  const markLoaded = useCallback(() => {
-    setIsLoaded(true);
-    const targetId = decodeURIComponent(window.location.hash.slice(1));
-    if (!anchorKey.split('|').includes(targetId)) return;
-
-    window.setTimeout(() => {
-      document.getElementById(targetId)?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    }, 0);
-  }, [anchorKey]);
 
   useEffect(() => {
+    if (isNearViewport) return undefined;
     const section = sectionRef.current;
-    if (!section) return undefined;
-
-    if (!('IntersectionObserver' in window)) return undefined;
+    if (!section || !('IntersectionObserver' in window)) {
+      setIsNearViewport(true);
+      return undefined;
+    }
 
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setIsNearViewport(true);
         observer.disconnect();
       }
-    }, { rootMargin: '800px 0px' });
+    }, { rootMargin: '600px 0px' });
 
     observer.observe(section);
     return () => observer.disconnect();
@@ -76,15 +81,15 @@ function DeferredSection({ children, anchorIds = [], minHeight = 340 }) {
       className="relative w-full"
       style={isNearViewport ? undefined : { minHeight }}
     >
-      {!isLoaded && anchorIds.map((id) => (
-        <span key={id} id={id} className="absolute top-0" aria-hidden="true" />
+      {anchorIds.map((id) => (
+        <span key={id} id={id} className="absolute -top-20" aria-hidden="true" />
       ))}
       {isNearViewport && (
-        <React.Suspense fallback={<div aria-hidden="true" style={{ minHeight }} />}>
-          <DeferredSectionContent onReady={markLoaded}>
+        <SectionErrorBoundary>
+          <React.Suspense fallback={<div className="w-full bg-white/50 animate-pulse rounded-lg" style={{ minHeight }} />}>
             {children}
-          </DeferredSectionContent>
-        </React.Suspense>
+          </React.Suspense>
+        </SectionErrorBoundary>
       )}
     </div>
   );

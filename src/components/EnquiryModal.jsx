@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { submitLead } from '../admin/api';
 import CountryCodeSelect from './CountryCodeSelect';
-import PrivacyPolicyModal from './PrivacyPolicyModal';
 
-export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', showToast, privacyData }) {
+export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', showToast }) {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
   const [consent, setConsent] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -131,13 +129,14 @@ export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', s
             />
             <span className="consent-copy text-[10px]">
               I Consent to The Processing of Provided Data According To{' '}
-              <button
-                type="button"
-                onClick={() => setPrivacyOpen(true)}
-                className="underline text-[#F26635] bg-transparent border-0 p-0 cursor-pointer font-semibold"
+              <a
+                href="#privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-[#F26635] font-semibold"
               >
                 Privacy Policy &amp; Terms
-              </button>
+              </a>
               , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
             </span>
           </label>
@@ -151,11 +150,6 @@ export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', s
           </button>
         </form>
       </div>
-      <PrivacyPolicyModal
-        isOpen={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-        privacyData={privacyData}
-      />
     </div>
   );
 }
