@@ -1,39 +1,12 @@
 import React, { useState } from 'react';
 
-export default function Amenities({ data, projectTitle = 'Aveon City Sector Zero' }) {
+export default function Amenities({ data, projectTitle = 'Arban City Sector 0' }) {
   const [extOpen, setExtOpen] = useState(false);
   const [intOpen, setIntOpen] = useState(false);
 
-  const defaultExternal = [
-    'Swimming Pool & Kids Pool',
-    'Grand Clubhouse with Lounge',
-    'Fully Equipped Modern Gymnasium',
-    'Landscaped Podium Garden & Lawns',
-    'Children’s Dedicated Play Area',
-    'Jogging & Walking Track',
-    'Yoga & Meditation Deck',
-    'Multipurpose Sports Court',
-    'Senior Citizens Gazebo Seating',
-    'Indoor Games Arena (Table Tennis, Carrom, Chess)',
-    'Rooftop Stargazing Deck',
-    'Grand Entrance Lobby with High Ceilings',
-  ];
-
-  const defaultInternal = [
-    'Vitrified Tile Flooring in All Rooms',
-    'Granite Kitchen Platform with SS Sink',
-    'Branded Sanitary Ware & CP Bath Fittings',
-    'Video Door Phone & Intercom Facility',
-    'Concealed Copper Wiring with Modular Switches',
-    'Powder-Coated Aluminium Sliding Windows',
-    'Provision for Inverter & Water Purifier',
-    'Anti-skid Ceramic Tiles in Bathrooms & Balconies',
-    'Laminated Flush Doors with Premium Hardware',
-    'AC Points Provision in Living & Bedrooms',
-  ];
-
-  const externalList = Array.isArray(data?.external) && data.external.length > 0 ? data.external : defaultExternal;
-  const internalList = Array.isArray(data?.internal) && data.internal.length > 0 ? data.internal : defaultInternal;
+  const externalList = Array.isArray(data?.external) ? data.external : [];
+  const internalList = Array.isArray(data?.internal) ? data.internal : [];
+  if (externalList.length === 0 && internalList.length === 0) return null;
 
   return (
     <section className="section-card" id="amenities">

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function About({ data, onOpenModal, projectTitle = 'Aveon City Sector Zero' }) {
+export default function About({ data, onOpenModal, projectTitle = 'Arban City Sector 0' }) {
   const title = data?.title || `About ${projectTitle}`;
   const p1 = data?.description || (
     <>

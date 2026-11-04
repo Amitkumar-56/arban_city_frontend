@@ -85,6 +85,8 @@ export default function SlidingQrBadge({ data }) {
                 src={resolveAssetUrl(activeTab === 0 ? projectQr : digipaceQr)}
                 alt={activeTab === 0 ? 'Project MahaRERA QR' : 'DigiPace MahaRERA QR'}
                 className="w-[88px] h-[88px] object-contain"
+                loading="lazy"
+                decoding="async"
               />
             </a>
           </div>

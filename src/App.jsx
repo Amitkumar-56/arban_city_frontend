@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import SEO from './components/SEO';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import SidebarEnquiry from './components/SidebarEnquiry';
@@ -7,21 +8,21 @@ import MobileBottomBar from './components/MobileBottomBar';
 import MobileEnquiry from './components/MobileEnquiry';
 import { fetchAllData } from './admin/api';
 
-const About = React.lazy(() => import('./components/About'));
-const Overview = React.lazy(() => import('./components/Overview'));
-const PropertySpecification = React.lazy(() => import('./components/PropertySpecification'));
-const PricingTable = React.lazy(() => import('./components/PricingTable'));
-const ElevationGallery = React.lazy(() => import('./components/ElevationGallery'));
-const Amenities = React.lazy(() => import('./components/Amenities'));
-const GallerySection = React.lazy(() => import('./components/GallerySection'));
-const VideoTour = React.lazy(() => import('./components/VideoTour'));
-const Location = React.lazy(() => import('./components/Location'));
-const SalesOffice = React.lazy(() => import('./components/SalesOffice'));
-const DeveloperAndRera = React.lazy(() => import('./components/DeveloperAndRera'));
-const FaqSection = React.lazy(() => import('./components/FaqSection'));
-const ConstructionSection = React.lazy(() => import('./components/ConstructionSection'));
-const Footer = React.lazy(() => import('./components/Footer'));
-const EnquiryModal = React.lazy(() => import('./components/EnquiryModal'));
+import About from './components/About';
+import Overview from './components/Overview';
+import PropertySpecification from './components/PropertySpecification';
+import PricingTable from './components/PricingTable';
+import ElevationGallery from './components/ElevationGallery';
+import Amenities from './components/Amenities';
+import GallerySection from './components/GallerySection';
+import VideoTour from './components/VideoTour';
+import Location from './components/Location';
+import SalesOffice from './components/SalesOffice';
+import DeveloperAndRera from './components/DeveloperAndRera';
+import FaqSection from './components/FaqSection';
+import ConstructionSection from './components/ConstructionSection';
+import Footer from './components/Footer';
+import EnquiryModal from './components/EnquiryModal';
 const AdminLayout = React.lazy(() => import('./admin/AdminLayout'));
 const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage'));
 
@@ -32,7 +33,7 @@ class SectionErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError() {
-    return { hasError: true };
+    return { hasError: false };
   }
 
   componentDidCatch(error, errorInfo) {
@@ -40,57 +41,19 @@ class SectionErrorBoundary extends React.Component {
   }
 
   render() {
-    if (this.state.hasError) {
-      return null;
-    }
     return this.props.children;
   }
 }
 
-function DeferredSection({ children, anchorIds = [], minHeight = 280 }) {
-  const sectionRef = useRef(null);
-  const [isNearViewport, setIsNearViewport] = useState(
-    () => (
-      !('IntersectionObserver' in window)
-      || anchorIds.includes(decodeURIComponent(window.location.hash.slice(1)))
-    ),
-  );
-
-  useEffect(() => {
-    if (isNearViewport) return undefined;
-    const section = sectionRef.current;
-    if (!section || !('IntersectionObserver' in window)) {
-      setIsNearViewport(true);
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsNearViewport(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: '600px 0px' });
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, [isNearViewport]);
-
+function DeferredSection({ children, anchorIds = [] }) {
   return (
-    <div
-      ref={sectionRef}
-      className="relative w-full"
-      style={isNearViewport ? undefined : { minHeight }}
-    >
+    <div className="relative w-full">
       {anchorIds.map((id) => (
         <span key={id} id={id} className="absolute -top-20" aria-hidden="true" />
       ))}
-      {isNearViewport && (
-        <SectionErrorBoundary>
-          <React.Suspense fallback={<div className="w-full bg-white/50 animate-pulse rounded-lg" style={{ minHeight }} />}>
-            {children}
-          </React.Suspense>
-        </SectionErrorBoundary>
-      )}
+      <SectionErrorBoundary>
+        {children}
+      </SectionErrorBoundary>
     </div>
   );
 }
@@ -142,8 +105,99 @@ export default function App() {
     }
   };
 
+  // Dynamically update document title, favicon, and SEO meta tags from Database
+  useEffect(() => {
+    if (!siteData?.meta) return;
+    const meta = siteData.meta;
+
+    // Document Title
+    if (meta.meta_title) {
+      document.title = meta.meta_title;
+    }
+
+    const setMetaTag = (nameOrProperty, value, isProperty = false) => {
+      if (!value) return;
+      const selector = isProperty ? `meta[property="${nameOrProperty}"]` : `meta[name="${nameOrProperty}"]`;
+      let tag = document.querySelector(selector);
+      if (!tag) {
+        tag = document.createElement('meta');
+        if (isProperty) tag.setAttribute('property', nameOrProperty);
+        else tag.setAttribute('name', nameOrProperty);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', value);
+    };
+
+    // Standard SEO Meta Tags
+    setMetaTag('description', meta.meta_description);
+    setMetaTag('keywords', meta.meta_keywords);
+    setMetaTag('author', meta.author);
+    setMetaTag('robots', meta.robots);
+    setMetaTag('theme-color', meta.theme_color);
+
+    // Canonical link
+    if (meta.canonical_url) {
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute('href', meta.canonical_url);
+    }
+
+    // OpenGraph
+    const ogImgUrl = meta.og_image ? (meta.og_image.startsWith('http') ? meta.og_image : `${window.location.origin}${meta.og_image}`) : '';
+    setMetaTag('og:title', meta.og_title || meta.meta_title, true);
+    setMetaTag('og:description', meta.og_description || meta.meta_description, true);
+    setMetaTag('og:type', meta.og_type || 'website', true);
+    setMetaTag('og:site_name', meta.og_site_name || 'Arban City', true);
+    setMetaTag('og:url', meta.og_url || meta.canonical_url || window.location.href, true);
+    setMetaTag('og:locale', meta.og_locale || 'en_IN', true);
+    if (ogImgUrl) setMetaTag('og:image', ogImgUrl, true);
+
+    // Twitter Card
+    setMetaTag('twitter:card', meta.twitter_card || 'summary_large_image');
+    setMetaTag('twitter:title', meta.twitter_title || meta.og_title || meta.meta_title);
+    setMetaTag('twitter:description', meta.twitter_description || meta.og_description || meta.meta_description);
+    setMetaTag('twitter:site', meta.twitter_site);
+    if (ogImgUrl || meta.twitter_image) {
+      const twImg = meta.twitter_image ? (meta.twitter_image.startsWith('http') ? meta.twitter_image : `${window.location.origin}${meta.twitter_image}`) : ogImgUrl;
+      setMetaTag('twitter:image', twImg);
+    }
+
+    // Search Console Verifications
+    setMetaTag('google-site-verification', meta.google_verification);
+    setMetaTag('msvalidate.01', meta.bing_verification);
+    setMetaTag('facebook-domain-verification', meta.facebook_verification);
+    setMetaTag('p:domain_verify', meta.pinterest_verification);
+
+    // Dynamic Header Scripts (e.g. Google Analytics / Meta Pixel from Admin)
+    if (meta.header_scripts && !document.getElementById('custom-header-scripts')) {
+      try {
+        const scriptContainer = document.createElement('div');
+        scriptContainer.id = 'custom-header-scripts';
+        scriptContainer.innerHTML = meta.header_scripts;
+        Array.from(scriptContainer.querySelectorAll('script')).forEach((oldScript) => {
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+          document.head.appendChild(newScript);
+        });
+      } catch (scriptErr) {
+        console.error('Custom script insertion error:', scriptErr);
+      }
+    }
+  }, [siteData]);
+
   useEffect(() => {
     loadData();
+
+    // Auto-refresh when tab gains focus / user switches back to website
+    const handleFocus = () => {
+      loadData();
+    };
+    window.addEventListener('focus', handleFocus);
 
     const handleLocationChange = () => {
       if (isAdminRoute()) {
@@ -159,21 +213,18 @@ export default function App() {
     window.addEventListener('hashchange', handleLocationChange);
 
     return () => {
+      window.removeEventListener('focus', handleFocus);
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
 
-  // 5-second auto popup trigger with session persistence
+  // Auto popup trigger on page load (1.5 seconds)
   useEffect(() => {
     if (view === 'website') {
       const timer = setTimeout(() => {
-        const alreadyShown = sessionStorage.getItem('popup_shown_session');
-        if (!alreadyShown) {
-          handleOpenModal('Book a Site Visit & Unlock Special Pricing');
-          sessionStorage.setItem('popup_shown_session', 'true');
-        }
-      }, 5000);
+        handleOpenModal('Book a Site Visit & Unlock Special Pricing');
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [view]);
@@ -217,6 +268,7 @@ export default function App() {
 
   return (
     <>
+      <SEO data={siteData?.meta} />
       <div className="page max-w-[1510px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_328px] gap-4 pl-0 md:pl-6 max-md:block max-md:max-w-[430px] max-md:w-full max-md:px-2.5 max-md:mx-auto" id="page">
         <main className="min-w-0 pb-8 max-md:contents">
           {/* Sticky Header over content column only */}
@@ -226,7 +278,7 @@ export default function App() {
           <Hero data={siteData?.hero} developerData={siteData?.developer} onOpenModal={handleOpenModal} />
 
           {/* Dedicated In-stream Mobile Enquiry Form */}
-          <MobileEnquiry showToast={showToast} />
+          <MobileEnquiry showToast={showToast} privacyData={siteData?.privacy} />
 
           {/* Main Card Sections */}
           <div className="flex flex-col gap-4.5 mt-4 max-md:gap-3 max-md:px-2.5 max-md:pb-20">
@@ -254,6 +306,7 @@ export default function App() {
               <PricingTable
                 data={siteData?.pricing}
                 floorPlans={siteData?.floorplans || siteData?.floorPlans}
+                projectTitle={projectTitle}
                 onOpenModal={handleOpenModal}
               />
             </DeferredSection>
@@ -284,7 +337,7 @@ export default function App() {
             <DeferredSection anchorIds={['faq']}>
               <FaqSection data={siteData?.faqs} projectTitle={projectTitle} />
             </DeferredSection>
-            <DeferredSection anchorIds={['construction']}>
+            <DeferredSection anchorIds={['construction']} minHeight={280}>
               <ConstructionSection
                 data={siteData?.construction}
                 onOpenModal={handleOpenModal}
@@ -320,15 +373,13 @@ export default function App() {
 
       {/* Enquiry Popup Modal */}
       {modalOpen && (
-        <React.Suspense fallback={null}>
-          <EnquiryModal
-            isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
-            title={modalTitle}
-            showToast={showToast}
-            privacyData={siteData?.privacy}
-          />
-        </React.Suspense>
+        <EnquiryModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={modalTitle}
+          showToast={showToast}
+          privacyData={siteData?.privacy}
+        />
       )}
 
       {/* Toast Notification */}

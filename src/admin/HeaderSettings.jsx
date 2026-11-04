@@ -26,19 +26,29 @@ export default function HeaderSettings({ data, onRefresh }) {
   }
 
   const [formData, setFormData] = useState({
-    site_title: data?.site_title || 'Arban City',
+    site_title: data?.site_title ?? '',
     logo_type: data?.logo_type || 'text',
-    logo_text: data?.logo_text || 'Arban',
-    logo_highlight: data?.logo_highlight || 'City',
-    subtitle: data?.subtitle || 'SECTOR ZERO',
+    logo_text: data?.logo_text ?? '',
+    logo_highlight: data?.logo_highlight ?? '',
+    subtitle: data?.subtitle ?? '',
     logo_image: data?.logo_image || '',
-    partner_badge: data?.partner_badge || 'DigiPACE',
+    logo_alt: data?.logo_alt ?? '',
+    logo_title: data?.logo_title ?? '',
+    logo_loading: data?.logo_loading || 'eager',
+    logo_decoding: data?.logo_decoding || 'async',
+    logo_width: data?.logo_width ?? '',
+    logo_height: data?.logo_height ?? '',
+    partner_badge: data?.partner_badge ?? '',
     partner_logo: data?.partner_logo || '',
-    phone: data?.phone || '+91 81000 00080',
-    email: data?.email || 'info@arban-city.com',
-    footer_disclaimer:
-      data?.footer_disclaimer ||
-      'The information provided on this website is intended exclusively for informational purposes and should not be construed as an offer of services. This site is managed by a RERA authorized real estate agent namely Digipace Consulting (OPC) Private Limited (Registered Agent bearing RERA No: {{AGENT_RERA}}).',
+    partner_logo_alt: data?.partner_logo_alt ?? '',
+    partner_logo_title: data?.partner_logo_title ?? '',
+    partner_logo_loading: data?.partner_logo_loading || 'eager',
+    partner_logo_decoding: data?.partner_logo_decoding || 'async',
+    partner_logo_width: data?.partner_logo_width ?? '',
+    partner_logo_height: data?.partner_logo_height ?? '',
+    phone: data?.phone ?? '',
+    email: data?.email ?? '',
+    footer_disclaimer: data?.footer_disclaimer ?? '',
   });
 
   const [bullets, setBullets] = useState(initialBullets);
@@ -102,22 +112,17 @@ export default function HeaderSettings({ data, onRefresh }) {
       <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Live Header Logo Preview</span>
         <div className="inline-flex items-center gap-3 bg-white p-2.5 border border-slate-200 rounded-lg shadow-xs">
-          {formData.logo_type === 'image' && formData.logo_image && failedLogoImage !== formData.logo_image ? (
+          {formData.logo_image && failedLogoImage !== formData.logo_image ? (
             <img
               src={resolveAssetUrl(formData.logo_image)}
-              alt="Logo Preview"
+              alt={formData.logo_alt || "Logo Preview"}
+              title={formData.logo_title || ""}
               className="h-9 max-w-[140px] object-contain"
               onError={() => setFailedLogoImage(formData.logo_image)}
             />
           ) : (
-            <div className="border-[1.5px] border-[#F26635] px-2.5 py-1 font-['Manrope',sans-serif] font-extrabold text-[15px] leading-tight text-[#111D46] flex flex-col justify-center">
-              <div>
-                {formData.logo_text || 'Arban'}{' '}
-                <span className="text-[#F26635]">{formData.logo_highlight || 'City'}</span>
-              </div>
-              <small className="block font-bold text-[7px] tracking-[2px] text-[#67748A] mt-0.5 uppercase">
-                {formData.subtitle || 'SECTOR ZERO'}
-              </small>
+            <div className="border border-dashed border-slate-300 px-3 py-1.5 text-xs text-slate-400 font-semibold rounded">
+              No Logo Uploaded Yet
             </div>
           )}
           <span className="w-px h-6 bg-slate-200"></span>
@@ -137,140 +142,80 @@ export default function HeaderSettings({ data, onRefresh }) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Project Logo Selection */}
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Project Logo Display Type</label>
-          <div className="flex flex-wrap items-center gap-6 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <label className="flex items-center gap-2.5 text-sm font-semibold text-slate-700 cursor-pointer">
-              <input
-                type="radio"
-                name="logo_type"
-                value="text"
-                checked={formData.logo_type === 'text'}
-                onChange={() => setFormData({ ...formData, logo_type: 'text' })}
-                className="w-4 h-4 text-[#e2572b]"
-              />
-              <Type size={16} className="text-[#0f2444]" />
-              <span>Styled Text Logo (e.g. Arban City)</span>
-            </label>
-            <label className="flex items-center gap-2.5 text-sm font-semibold text-slate-700 cursor-pointer">
-              <input
-                type="radio"
-                name="logo_type"
-                value="image"
-                checked={formData.logo_type === 'image'}
-                onChange={() => setFormData({ ...formData, logo_type: 'image' })}
-                className="w-4 h-4 text-[#e2572b]"
-              />
-              <Image size={16} className="text-[#e2572b]" />
-              <span>Upload Image / Graphic Logo</span>
-            </label>
-          </div>
-        </div>
-
-        {formData.logo_type === 'image' ? (
+        {/* Project Logo Upload (Pure Image Only) */}
+        <div className="p-5 bg-orange-50/40 border border-orange-200/70 rounded-2xl space-y-4">
           <div>
-            <FileUpload
-              label="Upload Project Logo Image"
-              value={formData.logo_image || ''}
-              onChange={(url) => setFormData({ ...formData, logo_image: url })}
-            />
+            <h3 className="text-sm font-bold text-slate-900">
+              Project Logo (Main Header Brand Logo)
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Upload project brand logo and configure its Alt Tag, Title, Loading, and Dimensions.
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">Primary Logo Text</label>
-              <input
-                type="text"
-                required
-                value={formData.logo_text || ''}
-                onChange={(e) => setFormData({ ...formData, logo_text: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
-                placeholder="e.g. Arban"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">Highlight Logo Text (Orange)</label>
-              <input
-                type="text"
-                required
-                value={formData.logo_highlight || ''}
-                onChange={(e) => setFormData({ ...formData, logo_highlight: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
-                placeholder="e.g. City"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">Subtitle Text (Below Logo)</label>
-              <input
-                type="text"
-                value={formData.subtitle || ''}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
-                placeholder="e.g. SECTOR ZERO"
-              />
-            </div>
-          </div>
-        )}
+          <FileUpload
+            label="Project Logo Image"
+            category="logos"
+            value={formData.logo_image || ''}
+            onChange={(url) => setFormData((prev) => ({ ...prev, logo_image: url, logo_type: 'image' }))}
+            alt={formData.logo_alt}
+            onAltChange={(val) => setFormData((prev) => ({ ...prev, logo_alt: val }))}
+            title={formData.logo_title}
+            onTitleChange={(val) => setFormData((prev) => ({ ...prev, logo_title: val }))}
+            loading={formData.logo_loading}
+            onLoadingChange={(val) => setFormData((prev) => ({ ...prev, logo_loading: val }))}
+            decoding={formData.logo_decoding}
+            onDecodingChange={(val) => setFormData((prev) => ({ ...prev, logo_decoding: val }))}
+            width={formData.logo_width}
+            onWidthChange={(val) => setFormData((prev) => ({ ...prev, logo_width: val }))}
+            height={formData.logo_height}
+            onHeightChange={(val) => setFormData((prev) => ({ ...prev, logo_height: val }))}
+          />
+        </div>
 
         {/* Digipace Partner Branding (Positioned right beside Project Logo) */}
         <div className="p-5 bg-blue-50/60 border border-blue-200/80 rounded-2xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-blue-900">
-                Partner Branding (Appears beside Project Logo in Navbar)
-              </h3>
-              <p className="text-xs text-blue-700 mt-0.5">
-                Displays DigiPACE branding beside the project logo as requested.
-              </p>
-            </div>
+          <div>
+            <h3 className="text-sm font-bold text-blue-900">
+              Partner Branding (Appears beside Project Logo in Navbar)
+            </h3>
+            <p className="text-xs text-blue-700 mt-0.5">
+              Upload DigiPACE or Partner logo and configure its separate Alt Tag, Title, Loading, and Dimensions.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Partner Text Badge</label>
-              <input
-                type="text"
-                value={formData.partner_badge || ''}
-                onChange={(e) => setFormData({ ...formData, partner_badge: e.target.value })}
-                placeholder="DigiPACE"
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm bg-white"
-              />
-            </div>
-
-            <div>
-              <FileUpload
-                label="Partner Graphic Logo (Optional)"
-                value={formData.partner_logo || ''}
-                onChange={(url) => setFormData({ ...formData, partner_logo: url })}
-              />
-            </div>
+          <div>
+            <FileUpload
+              label="Partner Graphic Logo Image"
+              category="logos"
+              value={formData.partner_logo || ''}
+              onChange={(url) => setFormData((prev) => ({ ...prev, partner_logo: url }))}
+              alt={formData.partner_logo_alt}
+              onAltChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_alt: val }))}
+              title={formData.partner_logo_title}
+              onTitleChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_title: val }))}
+              loading={formData.partner_logo_loading}
+              onLoadingChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_loading: val }))}
+              decoding={formData.partner_logo_decoding}
+              onDecodingChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_decoding: val }))}
+              width={formData.partner_logo_width}
+              onWidthChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_width: val }))}
+              height={formData.partner_logo_height}
+              onHeightChange={(val) => setFormData((prev) => ({ ...prev, partner_logo_height: val }))}
+            />
           </div>
         </div>
 
         {/* Contact Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Official Phone Number</label>
-            <input
-              type="text"
-              value={formData.phone || ''}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Official Email Address</label>
-            <input
-              type="email"
-              value={formData.email || ''}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium"
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-1.5">Official Phone Number</label>
+          <input
+            type="text"
+            value={formData.phone || ''}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
+            placeholder="+91 81000 00080"
+          />
         </div>
 
         {/* Footer Section Settings (Item 14) */}

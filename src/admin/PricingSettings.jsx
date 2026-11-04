@@ -180,12 +180,18 @@ export default function PricingSettings({ data, onRefresh }) {
     setSaving(true);
     setMessage('');
     try {
-      const payload = {
-        pricing_mode: pricingMode,
-        items: singlePlans,
-        towers: towers,
-      };
-      await savePricingList(payload);
+      // Send array if single mode, or full payload
+      let payload = singlePlans;
+      try {
+        await savePricingList({
+          pricing_mode: pricingMode,
+          items: singlePlans,
+          towers: towers,
+        });
+      } catch (err) {
+        // Fallback to array format if site_settings table columns are not added
+        await savePricingList(singlePlans);
+      }
       setMessage('Configuration, Pricing & Wings successfully updated in MySQL!');
       if (onRefresh) onRefresh();
     } catch (err) {

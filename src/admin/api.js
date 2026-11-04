@@ -1,29 +1,63 @@
-const API_BASE = 'http://127.0.0.1:8000/api';
+// Auto-detect environment:
+// If running on live domain (e.g. hostingersite.com), use the live backend API path.
+// If running locally, use http://127.0.0.1:8000/api
+const getApiBase = () => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('hostingersite.com') || host.includes('arban-city') || !['localhost', '127.0.0.1'].includes(host)) {
+      return `${window.location.origin}/backend/public/index.php/api`;
+    }
+  }
+  return 'http://127.0.0.1:8000/api';
+};
+
+const API_BASE = getApiBase();
 
 export function resolveAssetUrl(value) {
   if (!value || typeof value !== 'string') return '';
   if (/^(data:|blob:)/i.test(value)) return value;
+  if (/^https?:\/\//i.test(value)) return value;
 
-  const parsedValue = new URL(value, window.location.origin);
-  if (parsedValue.pathname.startsWith('/assets/')) {
-    return new URL(`${parsedValue.pathname}${parsedValue.search}${parsedValue.hash}`, window.location.origin).href;
+  const isLocal = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  if (value.startsWith('/images/Project/') || value.startsWith('images/Project/')) {
+    const cleanPath = value.startsWith('/') ? value : '/' + value;
+    if (isLocal) {
+      return window.location.origin + cleanPath;
+    }
+    return window.location.origin + '/backend/public' + cleanPath;
   }
-  if (parsedValue.pathname.startsWith('/uploads/')) {
-    const filename = parsedValue.pathname.split('/').pop();
-    return new URL(`/assets/${filename}${parsedValue.search}${parsedValue.hash}`, window.location.origin).href;
+
+  let backendUploadsBase = window.location.origin + '/backend/public/';
+  if (isLocal) {
+    backendUploadsBase = 'http://127.0.0.1:8000/';
   }
+
+  if (value.startsWith('/uploads/')) {
+    return backendUploadsBase + 'uploads/' + value.replace('/uploads/', '');
+  }
+  if (value.startsWith('uploads/')) {
+    return backendUploadsBase + 'uploads/' + value.replace('uploads/', '');
+  }
+
+  if (value.startsWith('/images/') || value.startsWith('images/')) {
+    const cleanPath = value.startsWith('/') ? value : '/' + value;
+    if (isLocal) {
+      return window.location.origin + cleanPath;
+    }
+    return window.location.origin + '/backend/public' + cleanPath;
+  }
+
+  if (value.startsWith('/assets/') || value.startsWith('assets/')) {
+    const cleanPath = value.startsWith('/') ? value : '/' + value;
+    return window.location.origin + cleanPath;
+  }
+
   if (value.startsWith('/') && !value.startsWith('//')) {
-    return parsedValue.href;
+    return window.location.origin + value;
   }
 
-  const apiUrl = new URL(API_BASE, window.location.origin);
-  const assetUrl = parsedValue;
-  const isLocalhostAsset = ['localhost', '127.0.0.1'].includes(assetUrl.hostname);
-  if (isLocalhostAsset && apiUrl.host !== assetUrl.host) {
-    assetUrl.protocol = apiUrl.protocol;
-    assetUrl.host = apiUrl.host;
-  }
-  return assetUrl.href;
+  return value;
 }
 
 export async function loginAdmin(email, password) {
@@ -39,9 +73,12 @@ export async function loginAdmin(email, password) {
   return data;
 }
 
-export async function uploadFile(file) {
+export async function uploadFile(file, category = 'general') {
   const formData = new FormData();
   formData.append('file', file);
+  if (category) {
+    formData.append('category', category);
+  }
 
   const res = await fetch(`${API_BASE}/upload`, {
     method: 'POST',
@@ -191,12 +228,30 @@ export async function fetchAmenities() {
 }
 
 export async function saveAmenitiesList(data) {
+  const payload = {
+    external: Array.isArray(data?.external)
+      ? data.external.map((item) => ({
+          name: typeof item === 'string' ? item : item.name,
+          is_visible: item?.is_visible === false || item?.is_visible === 0 || item?.is_visible === '0' ? 0 : 1,
+        }))
+      : [],
+    internal: Array.isArray(data?.internal)
+      ? data.internal.map((item) => ({
+          name: typeof item === 'string' ? item : item.name,
+          is_visible: item?.is_visible === false || item?.is_visible === 0 || item?.is_visible === '0' ? 0 : 1,
+        }))
+      : [],
+  };
+
   const res = await fetch(`${API_BASE}/amenities`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Failed to save amenities');
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error('Failed to save amenities: ' + errText);
+  }
   return res.json();
 }
 
@@ -384,5 +439,15 @@ export async function deleteSpecification(id) {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Failed to delete specification');
+  return res.json();
+}
+
+export async function updateSpecificationsList(items) {
+  const res = await fetch(`${API_BASE}/specifications`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items),
+  });
+  if (!res.ok) throw new Error('Failed to update specifications');
   return res.json();
 }

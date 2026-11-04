@@ -55,11 +55,12 @@ export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', s
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-[#0c173b]/80 flex items-center justify-center p-3 md:p-4 backdrop-blur-2xs"
+      className="fixed inset-0 z-[9999] bg-[#0c173b]/80 flex items-center justify-center p-3 md:p-4 backdrop-blur-2xs"
       onClick={onClose}
+      style={{ margin: 0, padding: '16px' }}
     >
       <div
-        className="relative w-[460px] max-w-full max-h-[92vh] max-md:w-[min(320px,calc(100vw-32px))] max-md:max-h-[calc(100dvh-24px)] overflow-y-auto overflow-x-hidden max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden bg-white rounded-2xl max-md:rounded-[13px] p-6 max-md:p-3.5 shadow-2xl animatePop"
+        className="relative w-[460px] max-w-[95vw] max-h-[92vh] max-md:w-[min(340px,calc(100vw-32px))] max-md:max-h-[calc(100dvh-24px)] overflow-y-auto overflow-x-hidden max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden bg-white rounded-2xl max-md:rounded-[13px] p-6 max-md:p-4 shadow-2xl animatePop m-auto"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -133,7 +134,7 @@ export default function EnquiryModal({ isOpen, onClose, title = 'Enquire Now', s
                 href="#privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-[#F26635] font-semibold"
+                className="text-[#F26635] font-semibold"
               >
                 Privacy Policy &amp; Terms
               </a>

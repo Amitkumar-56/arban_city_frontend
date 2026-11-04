@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { submitLead } from '../admin/api';
 import CountryCodeSelect from './CountryCodeSelect';
 
-export default function MobileEnquiry({ showToast }) {
+export default function MobileEnquiry({ showToast, privacyData }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
@@ -101,13 +101,20 @@ export default function MobileEnquiry({ showToast }) {
             onChange={(e) => setConsent(e.target.checked)}
             className="w-3.5 h-3.5 mt-0.5 shrink-0 accent-[#F26635]"
           />
-          <span className="consent-copy text-[10px]">
-            I Consent to The Processing of Provided Data According To{' '}
-            <a href="#privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-[#F26635] font-semibold">
-              Privacy Policy &amp; Terms
-            </a>
-            , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
-          </span>
+          {privacyData?.consent_text && typeof privacyData.consent_text === 'string' && privacyData.consent_text.trim() !== '' ? (
+            <span
+              className="consent-copy text-[10px] [&_a]:underline [&_a]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: privacyData.consent_text }}
+            />
+          ) : (
+            <span className="consent-copy text-[10px]">
+              I Consent to The Processing of Provided Data According To{' '}
+              <a href="#privacy-policy" target="_blank" rel="noopener noreferrer" className="underline  font-semibold">
+                Privacy Policy &amp; Terms
+              </a>
+              , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
+            </span>
+          )}
         </label>
         <button
           className="h-11 border-0 rounded-lg bg-[#111D46] text-white font-['Manrope',sans-serif] font-extrabold text-sm cursor-pointer hover:bg-[#1d2a4a] transition-colors"

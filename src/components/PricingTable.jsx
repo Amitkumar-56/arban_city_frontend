@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import floorPlanImg from '../assets/floor_plan.webp';
 import { resolveAssetUrl } from '../admin/api';
 
 const DEFAULT_TOWERS = [
@@ -59,17 +60,23 @@ const DEFAULT_TOWERS = [
   },
 ];
 
-export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
+export default function PricingTable({ data, floorPlans = [], onOpenModal, projectTitle = 'Arban City Sector 0' }) {
   // Support both array payload and { items, pricing_mode, towers } object payload
   const rawItems = Array.isArray(data) ? data : (data?.items || []);
   const initialMode = data?.pricing_mode || 'multiple';
-  const customTowers = Array.isArray(data?.towers) && data.towers.length > 0 ? data.towers : DEFAULT_TOWERS;
-
+  
   const [layoutMode, setLayoutMode] = useState(initialMode); // 'multiple' | 'single'
   const [selectedTowerIdx, setSelectedTowerIdx] = useState(0);
   const [selectedPlanIdx, setSelectedPlanIdx] = useState(0);
 
-  // If backend provided flat pricing data, use it; otherwise use full tower data
+  // Sync state if backend data changes dynamically via polling/refresh
+  useEffect(() => {
+    if (data?.pricing_mode) {
+      setLayoutMode(data.pricing_mode);
+    }
+  }, [data?.pricing_mode]);
+
+  // If backend provided flat pricing data, use it
   const hasCustomData = Array.isArray(rawItems) && rawItems.length > 0;
 
   const parsedCustomPlans = hasCustomData
@@ -80,27 +87,62 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
       title: `${d.type || d.unit_type || 'Apartment'} Floor Plan`,
       details: `${d.carpet || d.carpet_area || ''} Carpet Area · ${d.price || ''}`,
     }))
-    : null;
+    : [];
 
-  const towersList = customTowers;
-  const currentTower = towersList[selectedTowerIdx] || towersList[0] || DEFAULT_TOWERS[0];
+  // Towers list: priority to data.towers, fallback to DEFAULT_TOWERS
+  const towersSource = Array.isArray(data?.towers) && data.towers.length > 0
+    ? data.towers
+    : DEFAULT_TOWERS;
+
+  // Normalize towers and their plans
+  const towersList = towersSource.map((t, tIdx) => {
+    const rawPlans = Array.isArray(t.plans) ? t.plans : [];
+    const normalizedPlans = rawPlans.map((p, pIdx) => ({
+      type: p.type || p.unit_type || `Unit ${pIdx + 1}`,
+      carpet: (p.carpet || p.carpet_area || '').toString().replace(/sq\.?ft/i, '').trim(),
+      price: p.price || 'Price on Request',
+      title: p.title || `${p.type || p.unit_type || 'Apartment'} Floor Plan`,
+      details: p.details || `${p.carpet || p.carpet_area || ''} Carpet Area · ${p.price || ''}`,
+    }));
+    return {
+      id: t.id || `tower_${tIdx}`,
+      name: t.name || `Wing ${String.fromCharCode(65 + tIdx)}`,
+      subtitle: t.subtitle || '',
+      plans: normalizedPlans,
+    };
+  });
+
+  const currentTower = towersList[selectedTowerIdx] || towersList[0] || null;
   const activePlans = layoutMode === 'single'
-    ? (parsedCustomPlans || towersList[0]?.plans || DEFAULT_TOWERS[0].plans)
+    ? (parsedCustomPlans.length > 0 ? parsedCustomPlans : (towersList[0]?.plans || []))
     : (currentTower?.plans && currentTower.plans.length > 0
-        ? currentTower.plans
-        : (parsedCustomPlans || DEFAULT_TOWERS[0].plans));
+      ? currentTower.plans
+      : (parsedCustomPlans.length > 0 ? parsedCustomPlans : (towersList[0]?.plans || [])));
+
+  if (activePlans.length === 0) return null;
 
   const safePlanIdx = selectedPlanIdx >= activePlans.length ? 0 : selectedPlanIdx;
   const currentPlan = activePlans[safePlanIdx] || activePlans[0];
 
-  const planArea = currentPlan?.details?.match(/[\d,.]+/)?.[0];
+  const planArea = currentPlan?.details?.match(/[\d,.]+/)?.[0] || currentPlan?.carpet?.match(/[\d,.]+/)?.[0];
   const selectedFloorPlan = Array.isArray(floorPlans) && floorPlans.length > 0
-    ? floorPlans.find((plan) =>
-      (plan.unit_type || plan.type) === currentPlan?.type
-      && (plan.carpet_area || plan.carpet || '').toString().match(/[\d,.]+/)?.[0] === planArea
-    ) || floorPlans.find((plan) => (plan.unit_type || plan.type) === currentPlan?.type)
-    || floorPlans[safePlanIdx % floorPlans.length]
+    ? (
+        floorPlans.find((plan) =>
+          (plan.unit_type || plan.type) === currentPlan?.type
+          && (plan.carpet_area || plan.carpet || '').toString().match(/[\d,.]+/)?.[0] === planArea
+        ) ||
+        floorPlans.find((plan) => (plan.unit_type || plan.type) === currentPlan?.type) ||
+        floorPlans[safePlanIdx % floorPlans.length]
+      )
     : null;
+
+  const currentPlanImage = (selectedFloorPlan?.image_url && selectedFloorPlan.image_url.trim())
+    ? resolveAssetUrl(selectedFloorPlan.image_url)
+    : (selectedFloorPlan?.image && selectedFloorPlan.image.trim())
+      ? resolveAssetUrl(selectedFloorPlan.image)
+      : (currentPlan?.image_url && currentPlan.image_url.trim())
+        ? resolveAssetUrl(currentPlan.image_url)
+        : floorPlanImg;
 
   const handlePrev = () => {
     setSelectedPlanIdx((prev) => (prev <= 0 ? activePlans.length - 1 : prev - 1));
@@ -120,16 +162,16 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
       {/* Title & Intro Header matching Screenshot */}
       <div className="text-center mb-6">
         <h2 className="text-2xl sm:text-[26px] font-black text-[#111D46] tracking-tight">
-          Arban City Sector 0   Configuration and Price
+          {projectTitle} Configuration and Price
         </h2>
         <p className="text-sm text-[#475569] mt-1.5 max-w-[790px] mx-auto">
           Compare apartment configurations, carpet areas and indicative prices. Select a row to see its floor plan.
         </p>
       </div>
 
-      {/* Tower Cards (Only visible in Multiple Towers mode) */}
-      {layoutMode === 'multiple' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mb-5">
+      {/* Tower Cards (Only visible in Multiple Towers mode jab towers exist karein) */}
+      {layoutMode === 'multiple' && towersList.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 mb-5">
           {towersList.map((tower, idx) => {
             const isSelected = selectedTowerIdx === idx;
             return (
@@ -262,43 +304,24 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
               ‹
             </button>
 
-            {/* Architectural SVG Floor Plan Representation */}
-            {selectedFloorPlan?.image_url ? (
-              <img
-                src={resolveAssetUrl(selectedFloorPlan.image_url)}
-                alt={currentPlan?.title}
-                className="w-full max-w-[430px] h-auto max-h-[280px] object-contain drop-shadow-sm"
-              />
-            ) : (
-              <svg
-                viewBox="0 0 430 300"
-                aria-label={currentPlan?.title}
-                className="w-full max-w-[430px] h-auto max-h-[270px] object-contain drop-shadow-xs"
-              >
-                <rect x="15" y="15" width="400" height="270" fill="#FCFCF9" stroke="#334155" strokeWidth="4" rx="4" />
-                {/* Master Bedroom */}
-                <rect x="25" y="25" width="160" height="130" fill="#F1F5F9" stroke="#64748B" strokeWidth="2" />
-                <text x="50" y="85" fontFamily="Manrope, sans-serif" fontSize="13" fontWeight="800" fill="#1E293B">MASTER BED</text>
-                <text x="50" y="105" fontFamily="DM Sans, sans-serif" fontSize="11" fill="#64748B">11'0" x 12'0"</text>
-
-                {/* Living & Dining Room */}
-                <rect x="195" y="25" width="210" height="175" fill="#F8FAFC" stroke="#64748B" strokeWidth="2" />
-                <text x="245" y="105" fontFamily="Manrope, sans-serif" fontSize="14" fontWeight="800" fill="#1E293B">LIVING / DINING</text>
-                <text x="265" y="125" fontFamily="DM Sans, sans-serif" fontSize="11" fill="#64748B">16'0" x 11'6"</text>
-
-                {/* Balcony */}
-                <rect x="195" y="205" width="210" height="70" fill="#E2E8F0" stroke="#64748B" strokeWidth="2" strokeDasharray="4 2" />
-                <text x="260" y="245" fontFamily="Manrope, sans-serif" fontSize="12" fontWeight="700" fill="#334155">BALCONY</text>
-
-                {/* Kitchen */}
-                <rect x="25" y="165" width="105" height="110" fill="#F1F5F9" stroke="#64748B" strokeWidth="2" />
-                <text x="45" y="225" fontFamily="Manrope, sans-serif" fontSize="12" fontWeight="700" fill="#1E293B">KITCHEN</text>
-
-                {/* Bath */}
-                <rect x="135" y="165" width="50" height="110" fill="#E2E8F0" stroke="#64748B" strokeWidth="2" />
-                <text x="142" y="225" fontFamily="Manrope, sans-serif" fontSize="11" fontWeight="700" fill="#475569">BATH</text>
-              </svg>
-            )}
+            {/* Real Floor Plan Image Display */}
+            <img
+              src={currentPlanImage}
+              alt={selectedFloorPlan?.alt || `${currentPlan?.title || 'Apartment'} - Floor Plan Layout`}
+              title={selectedFloorPlan?.title || `${currentPlan?.title || 'Apartment'} Floor Plan`}
+              loading="lazy"
+              decoding="async"
+              onClick={() => onOpenModal && onOpenModal(`Floor Plan - ${currentPlan?.type || 'Apartment'}`)}
+              className="w-full max-w-[430px] h-auto max-h-[280px] object-contain drop-shadow-sm transition-all duration-300 hover:scale-105 cursor-pointer"
+              onError={(e) => {
+                const currentSrc = e.currentTarget.src;
+                if (currentSrc.includes('/backend/public/')) {
+                  e.currentTarget.src = currentSrc.replace('/backend/public/', '/');
+                } else if (!currentSrc.includes('assets/floor_plan')) {
+                  e.currentTarget.src = floorPlanImg;
+                }
+              }}
+            />
 
             {/* Next Arrow Button */}
             <button
@@ -314,16 +337,16 @@ export default function PricingTable({ data, floorPlans = [], onOpenModal }) {
           {/* Plan Caption */}
           <div className="flex flex-col items-center text-center mt-3">
             <b className="font-extrabold text-base sm:text-[17px] text-[#111D46]">
-              {currentPlan?.title}
+              {selectedFloorPlan?.unit_type ? `${selectedFloorPlan.unit_type} Floor Plan` : (currentPlan?.title || 'Floor Plan')}
             </b>
             <span className="text-[13px] text-[#475569] mt-0.5">
-              {currentPlan?.details}
+              {selectedFloorPlan?.carpet_area ? `${selectedFloorPlan.carpet_area} Carpet Area` : (currentPlan?.details || '')}
             </span>
             <small className="text-[10px] text-[#94A3B8] mt-0.5">Artistic impression</small>
 
             <button
               type="button"
-              onClick={() => onOpenModal && onOpenModal(`Floor Plan - ${currentPlan?.type}`)}
+              onClick={() => onOpenModal && onOpenModal(`Floor Plan - ${selectedFloorPlan?.unit_type || currentPlan?.type || 'Apartment'}`)}
               className="mt-2.5 inline-flex items-center gap-1.5 border border-[#184E38] text-[#184E38] hover:bg-[#184E38] hover:text-white font-bold text-xs py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer"
             >
               <span>Download Detailed Floor Plan</span>

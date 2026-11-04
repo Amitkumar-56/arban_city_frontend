@@ -4,27 +4,16 @@ import { Save, CheckCircle, Plus, Trash2, MapPin } from 'lucide-react';
 
 export default function LocationSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    description:
-      data?.description ||
-      'Strategically located in Airoli, Navi Mumbai, Arban City offers excellent connectivity to key destinations and daily necessities.',
-    office_title: data?.office_title || data?.officeTitle || 'Balaji Tricity Sector Zero Navi Mumbai',
-    office_subtitle:
-      data?.office_subtitle || data?.officeSubtitle || 'Sales Gallery / Office Address & Experience Center',
-    office_address:
-      data?.office_address ||
-      data?.officeAddress ||
-      'Balaji Tricity Delta Arban City, Thane - Belapur Road, Airoli, Navi Mumbai - 400708',
-    map_url: data?.map_url || data?.mapUrl || 'https://www.google.com/maps/search/?api=1&query=Sector+Zero+Airoli+Navi+Mumbai',
+    description: data?.description ?? '',
+    office_title: data?.office_title || data?.officeTitle || '',
+    office_subtitle: data?.office_subtitle || data?.officeSubtitle || '',
+    office_address: data?.office_address || data?.officeAddress || '',
+    map_url: data?.map_url || data?.mapUrl || '',
     map_embed_code: data?.map_embed_code || data?.mapEmbedCode || '',
-    landmarks: (data?.landmarks || [
-      { id: 1, name: 'Satyam Hospital', travel_time: '5 Mins' },
-      { id: 2, name: 'Flower Hospital', travel_time: '7 Mins' },
-      { id: 3, name: 'Lifeline Hospital', travel_time: '10 Mins' },
-      { id: 4, name: 'Bharti Hospital', travel_time: '15 Mins' },
-    ]).map((l) => ({
+    landmarks: (data?.landmarks || []).map((l) => ({
       id: l.id,
       name: l.name,
-      travel_time: l.travel_time || l.time || '5 Mins',
+      travel_time: l.travel_time || l.time || '',
     })),
   });
   const [saving, setSaving] = useState(false);

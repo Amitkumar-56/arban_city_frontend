@@ -7,37 +7,76 @@ import reraQrImg from '../assets/rera_qr.webp';
 import { resolveAssetUrl } from '../admin/api';
 
 export default function Hero({ data, developerData, onOpenModal }) {
-  const projectName = data?.title || 'Aveon City Sector Zero';
+  const projectName = data?.title || 'Arban City Sector 0';
   const location = data?.location || 'Airoli, Navi Mumbai';
   const developer = data?.developer || 'Delta Tricity';
   const tag = data?.tag || 'NAVI MUMBAI · AIROLI';
 
-  const defaultStats = [
-    { label: data?.area_lbl || 'Land Parcel', value: data?.area_val || '5.5 Acres' },
-    { label: data?.towers_lbl || 'Towers', value: data?.towers_val || '3 High Rise' },
-    { label: data?.storey_lbl || 'Structure', value: data?.storey_val || '35+ Storeys' },
-  ];
+  const stats = data?.stats && data.stats.length > 0
+    ? data.stats
+    : (data?.area_val || data?.towers_val || data?.storey_val)
+      ? [
+        data?.area_val ? { label: data?.area_lbl || 'Land Parcel', value: data.area_val } : null,
+        data?.towers_val ? { label: data?.towers_lbl || 'Towers', value: data.towers_val } : null,
+        data?.storey_val ? { label: data?.storey_lbl || 'Structure', value: data.storey_val } : null,
+      ].filter(Boolean)
+      : [];
 
-  const stats = data?.stats || defaultStats;
-  const configText = data?.config_text || '1, 2 & 3 BHK Residences';
-  const price = data?.price_text || '₹89 Lacs';
-  const priceSub = data?.price_subtext || '* onwards';
+  const configText = data?.config_text || '';
+  const price = data?.price_text || '';
+  const priceSub = data?.price_subtext || '';
 
   const defaultBanners = [
-    { img: banner1, title: 'Grand Elevation View', sub: '3 High-Rise Luxury Towers' },
-    { img: banner2, title: 'Podium & Amenities', sub: '35+ Modern Lifestyle Features' },
-    { img: banner3, title: 'Sample Flat Living', sub: 'Spacious 1, 2 & 3 BHK Layouts' },
-    { img: heroSkyline, title: 'Aerial Project View', sub: '5.5 Acres Prime Residential Parcel' },
+    { img: banner1, title: `${projectName} - Modern High Rise Towers`, sub: `${projectName} Luxury Skyline Elevation Airoli` },
+    { img: banner2, title: `${projectName} - Signature Residences`, sub: `${projectName} Luxury 1, 2 and 3 BHK Apartments` },
+    { img: banner3, title: `${projectName} - World-Class Amenities`, sub: `${projectName} Podium Amenities and Grand Clubhouse` },
   ];
 
   const slides = Array.isArray(data?.banners) && data.banners.length > 0
-    ? data.banners.map((b) => (typeof b === 'string' ? { img: b, title: 'Project Showcase', sub: '' } : b))
+    ? data.banners.map((b, i) => (
+      typeof b === 'string'
+        ? {
+            img: b,
+            title: `${projectName} Slide ${i + 1}`,
+            sub: `${projectName} View ${i + 1}`,
+            loading: i === 0 ? 'eager' : 'lazy',
+            decoding: i === 0 ? 'sync' : 'async',
+            width: '',
+            height: '',
+          }
+        : {
+            img: b.img || b.image_url || defaultBanners[i % defaultBanners.length].img,
+            title: b.title || `${projectName} Slide ${i + 1}`,
+            sub: b.sub || b.alt || `${projectName} View ${i + 1}`,
+            loading: b.loading || (i === 0 ? 'eager' : 'lazy'),
+            decoding: b.decoding || (i === 0 ? 'sync' : 'async'),
+            width: b.width || '',
+            height: b.height || '',
+          }
+    ))
     : data?.hero_image
-      ? [{ img: data.hero_image, title: projectName, sub: location }]
+      ? [{ img: data.hero_image, title: projectName, sub: location, loading: 'eager', decoding: 'sync', width: '', height: '' }]
       : defaultBanners;
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [activeQrSlide, setActiveQrSlide] = useState(0);
+
+  // Dynamic Image Preload link injection for Hero Banner First Slide (rel="preload" as="image")
+  useEffect(() => {
+    if (slides && slides.length > 0 && slides[0]?.img) {
+      const firstSlideUrl = resolveAssetUrl(slides[0].img);
+      let preloadLink = document.querySelector('link[data-hero-preload="true"]');
+      if (!preloadLink) {
+        preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.as = 'image';
+        preloadLink.setAttribute('data-hero-preload', 'true');
+        preloadLink.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(preloadLink);
+      }
+      preloadLink.href = firstSlideUrl;
+    }
+  }, [slides]);
   const projectRera = developerData?.project_rera || 'PR1260002501680';
   const agentRera = developerData?.digipace_rera || developerData?.agent_rera || 'A51700026634';
   const projectQr = developerData?.project_qr || developerData?.qr_image || reraQrImg;
@@ -69,29 +108,25 @@ export default function Hero({ data, developerData, onOpenModal }) {
         {slides.map((s, idx) => (
           <div
             key={idx}
-            className={`slide absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              activeSlide === idx ? 'opacity-100 z-1' : 'opacity-0 z-0 pointer-events-none'
-            }`}
+            className={`slide absolute inset-0 transition-opacity duration-700 ease-in-out ${activeSlide === idx ? 'opacity-100 z-1' : 'opacity-0 z-0 pointer-events-none'
+              }`}
           >
             <img
               src={resolveAssetUrl(s.img)}
-              alt={`${projectName} Slide ${idx + 1}`}
+              alt={s.sub || `${projectName} Slide ${idx + 1}`}
+              title={s.title || `${projectName} Slide ${idx + 1}`}
+              loading={s.loading || (idx === 0 ? "eager" : "lazy")}
+              decoding={s.decoding || (idx === 0 ? "sync" : "async")}
+              width={s.width || undefined}
+              height={s.height || undefined}
+              {...(idx === 0 ? { fetchpriority: "high", fetchPriority: "high", rel: "preload", as: "image" } : {})}
               className="w-full h-full object-cover max-md:h-[245px]"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#051025]/40 via-transparent to-transparent max-md:bg-gradient-to-t max-md:from-[#051025]/25" />
-            {s.title && (
-              <div className="hidden md:block absolute right-5.5 bottom-10 z-10 text-right text-white drop-shadow">
-                <b className="block font-['Manrope',sans-serif] font-extrabold text-[14px]">{s.title}</b>
-                {s.sub && <span className="text-[14px] text-white/80">{s.sub}</span>}
-              </div>
-            )}
+
           </div>
         ))}
 
-        {/* Top-Left Location Badge */}
-        <span className="locTag absolute top-4.5 right-4.5 max-md:top-3 max-md:left-3 max-md:right-auto z-10 bg-white text-[#111D46] rounded-full px-3.5 py-1.5 max-md:px-3 max-md:py-1 font-extrabold text-[11px] max-md:text-[9px] tracking-wider shadow-md max-md:max-w-[calc(100%-100px)] whitespace-nowrap">
-          {tag}
-        </span>
+
 
         {/* MahaRERA QR Badge (Mobile Only, Hidden on Desktop) */}
         <div className="heroReraQr hidden max-md:flex absolute top-3 right-3 z-12 flex-col items-center justify-center gap-0.5 w-[88px] p-[5px] border border-[#e8ebf0] rounded-[9px] bg-white/98 shadow-[0_4px_14px_#12223d38] leading-tight">
@@ -99,7 +134,10 @@ export default function Hero({ data, developerData, onOpenModal }) {
             {activeQrSlide === 0 ? 'Project MahaRERA' : 'DigiPace MahaRERA'}
           </span>
           <img
-            alt={activeQrSlide === 0 ? 'Project MahaRERA QR code' : 'DigiPace MahaRERA QR code'}
+            alt={activeQrSlide === 0 ? `Project MahaRERA QR - ${projectRera}` : `DigiPace Agent MahaRERA QR - ${agentRera}`}
+            title={activeQrSlide === 0 ? `Project MahaRERA Registration QR ${projectRera}` : `DigiPace Authorized Agent QR ${agentRera}`}
+            loading="lazy"
+            decoding="async"
             src={resolveAssetUrl(activeQrSlide === 0 ? projectQr : digipaceQr)}
             onError={(event) => {
               event.currentTarget.onerror = null;
@@ -117,9 +155,8 @@ export default function Hero({ data, developerData, onOpenModal }) {
                 type="button"
                 onClick={() => setActiveQrSlide(slide)}
                 aria-label={`Show ${slide === 0 ? 'Project' : 'DigiPace'} MahaRERA QR`}
-                className={`h-1 rounded-full border-0 p-0 ${
-                  activeQrSlide === slide ? 'w-3 bg-[#F26635]' : 'w-1 bg-[#D1D5DB]'
-                }`}
+                className={`h-1 rounded-full border-0 p-0 ${activeQrSlide === slide ? 'w-3 bg-[#F26635]' : 'w-1 bg-[#D1D5DB]'
+                  }`}
               />
             ))}
           </div>
@@ -131,9 +168,8 @@ export default function Hero({ data, developerData, onOpenModal }) {
             <button
               key={idx}
               type="button"
-              className={`h-2 rounded-full border-0 p-0 transition-all cursor-pointer ${
-                activeSlide === idx ? 'w-5.5 bg-white' : 'w-2 bg-white/55'
-              }`}
+              className={`h-2 rounded-full border-0 p-0 transition-all cursor-pointer ${activeSlide === idx ? 'w-5.5 bg-white' : 'w-2 bg-white/55'
+                }`}
               onClick={() => setActiveSlide(idx)}
               aria-label={`Slide ${idx + 1}`}
             />

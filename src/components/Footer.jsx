@@ -5,13 +5,7 @@ export default function Footer({ developerData, privacyData, headerData }) {
   const agentRera = developerData?.digipace_rera || developerData?.agent_rera || 'A51700026634';
   const qrImage = developerData?.qr_image || reraQrImg;
 
-  const defaultDisclaimers = [
-    'The project details, specifications, images, and dimensions shown on this website are indicative and artistic impressions for representational purposes only.',
-    'All units and inventory are subject to availability at the time of booking. Pricing, taxes, government charges, and floor premiums are subject to change without prior notice.',
-    'Customers are advised to independently verify all details, documents, and approvals with the developer and sales team prior to making any booking or purchase decision.',
-    'This website is an authorized channel partner portal operated by Digipace Consulting (OPC) Private Limited (MahaRERA No: A51700026634) for facilitating customer enquiries.',
-  ];
-  let disclaimers = defaultDisclaimers;
+  let disclaimers = [];
   if (headerData?.footer_bullets_json) {
     try {
       const parsed = typeof headerData.footer_bullets_json === 'string'
@@ -36,7 +30,14 @@ export default function Footer({ developerData, privacyData, headerData }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img src={resolveAssetUrl(qrImage)} alt="MahaRERA Verify QR" className="w-[72px] h-[72px] bg-white p-1 rounded object-contain" />
+            <img
+              src={resolveAssetUrl(qrImage)}
+              alt="MahaRERA Official Registration Verification QR Code"
+              title="Scan to Verify MahaRERA Registration"
+              loading="lazy"
+              decoding="async"
+              className="w-[72px] h-[72px] bg-white p-1 rounded object-contain"
+            />
             
           </a>
           <p className="m-0 max-w-[930px] text-xs md:text-[13px] leading-relaxed text-[#C9CCD3]">

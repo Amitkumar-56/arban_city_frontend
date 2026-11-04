@@ -4,10 +4,8 @@ import { Save, CheckCircle } from 'lucide-react';
 
 export default function AboutSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    title: data?.title || 'About Arban City Sector 0',
-    description:
-      data?.description ||
-      'Arban City Sector 0 Navi Mumbai Airoli is a premium residential project by Delta Tricity spread across 5.5 acres. It offers 1, 2 & 3 BHK homes with world-class amenities, modern design and excellent connectivity.',
+    title: data?.title ?? '',
+    description: data?.description ?? '',
     paragraph2:
       data?.paragraph2 !== undefined
         ? data.paragraph2

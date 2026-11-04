@@ -1,9 +1,11 @@
-export default function SalesOffice({ data, projectTitle = 'Aveon City Sector Zero', phone = '+91 81000 00000' }) {
-  const address = data?.office_address || data?.officeAddress || data?.address || 'Balaji Tricity Delta Aveon City, Thane - Belapur Road, Airoli, Navi Mumbai – 400708';
+export default function SalesOffice({ data, projectTitle = 'Arban City Sector 0', phone = '+91 81000 00000' }) {
+  const address = data?.office_address || data?.officeAddress || data?.address || '';
   const officeTitle = data?.office_title || data?.officeTitle || `${projectTitle} Sales Gallery`;
-  const officeSubtitle = data?.office_subtitle || data?.officeSubtitle || 'Sales Gallery / Office Address';
+  const officeSubtitle = data?.office_subtitle || data?.officeSubtitle || 'Sales Gallery / Office Address & Experience Center';
   const cleanPhone = phone.replace(/\s+/g, '');
-  const mapQuery = encodeURIComponent(address);
+  const mapQuery = encodeURIComponent(address || `${projectTitle} Airoli Navi Mumbai`);
+
+  if (!address && !data?.office_title && !data?.officeTitle) return null;
 
   return (
     <section className="section-card" id="sales-office">

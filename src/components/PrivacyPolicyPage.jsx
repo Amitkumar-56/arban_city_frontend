@@ -59,14 +59,22 @@ export default function PrivacyPolicyPage({ onBackToSite, initialData }) {
           </p>
         )}
 
-        {sections.length > 0 ? (
+        {/* Document Body (Free-form text / HTML or sections) */}
+        {policyData?.content ? (
+          <div
+            className="prose prose-slate max-w-none text-sm sm:text-[15px] leading-relaxed text-gray-700 space-y-4 whitespace-pre-wrap font-sans"
+            dangerouslySetInnerHTML={{ __html: policyData.content }}
+          />
+        ) : sections.length > 0 ? (
           <div className="space-y-6">
             {sections.map((section, idx) => (
               <div key={idx}>
-                <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
-                  {section.heading}
-                </h2>
-                <p className="text-sm sm:text-[14.5px] leading-relaxed text-gray-600">
+                {section.heading && (
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+                    {section.heading}
+                  </h2>
+                )}
+                <p className="text-sm sm:text-[14.5px] leading-relaxed text-gray-600 whitespace-pre-wrap">
                   {section.body}
                 </p>
               </div>

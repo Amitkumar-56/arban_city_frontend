@@ -1,14 +1,17 @@
 import { useState } from 'react';
 
-export default function Location({ data, projectTitle = 'Aveon City Sector Zero' }) {
+export default function Location({ data, projectTitle = 'Arban City Sector 0' }) {
   const [activeTab, setActiveTab] = useState('connectivity');
   const mapEmbedCode = data?.map_embed_code || data?.mapEmbedCode || '';
-  const mapUrl = data?.map_url || data?.mapUrl || 'https://www.google.com/maps/search/?api=1&query=Sector+Zero+Airoli+Navi+Mumbai';
+  const mapAddress = data?.office_address || data?.officeAddress || 'Sector Zero Airoli Navi Mumbai';
+  const defaultEmbed = `https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
 
-  // Extract clean src if user pasted full <iframe> tag
+  // Extract clean src if user pasted full <iframe> tag, or fallback to auto-embed of address
   const iframeSrc = mapEmbedCode
     ? (mapEmbedCode.match(/src=["'](.*?)["']/)?.[1] || mapEmbedCode)
-    : '';
+    : defaultEmbed;
+
+  const mapUrl = data?.map_url || data?.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapAddress)}`;
 
   const tabs = [
     { id: 'connectivity', label: 'Connectivity' },
@@ -50,16 +53,14 @@ export default function Location({ data, projectTitle = 'Aveon City Sector Zero'
   const dynamicLandmarks = Array.isArray(data?.landmarks) && data.landmarks.length > 0
     ? data.landmarks.map((l) => ({
         name: l.name,
-        dist: l.travel_time || l.time || l.dist || '5 Mins',
+        dist: l.travel_time || l.time || l.dist || '',
       }))
-    : null;
+    : [];
 
-  const currentPlaces = dynamicLandmarks || (placesData[activeTab] || placesData.connectivity);
-  const locationDescription = data?.description || (
-    <>
-      Strategically located in <b className="text-[#111D46] font-bold">Airoli, Navi Mumbai</b>, with connectivity to business hubs, schools, hospitals, shopping and public transport.
-    </>
-  );
+  const currentPlaces = dynamicLandmarks;
+  const locationDescription = data?.description || '';
+
+  if (!locationDescription && currentPlaces.length === 0 && !iframeSrc) return null;
 
   return (
     <section className="section-card" id="location">

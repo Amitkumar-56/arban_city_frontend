@@ -1,58 +1,134 @@
-import React, { useState } from 'react';
-import { saveAmenitiesList } from './api';
-import { Save, CheckCircle, Plus, Trash2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { fetchAmenities, saveAmenitiesList } from './api';
+import { Save, CheckCircle, Plus, Sparkles, Eye, EyeOff } from 'lucide-react';
 
 export default function AmenitiesSettings({ data, onRefresh }) {
-  const [amenities, setAmenities] = useState(
-    data || {
-      external: [
-        'Swimming Pool',
-        'Kids Play Area',
-        'Mini Golf',
-        'Event Lawn / Amphitheatre',
-        'Multipurpose Court',
-        'Open Gym',
-      ],
-      internal: [
-        'Flush Doors In All Rooms',
-        'Exhaust Fans In Kitchen & Washroom',
-        'Stainless Steel Sink',
-        'Vitrified Flooring',
-        'Anti Skid Flooring In Balcony & Washroom',
-        'Wide Windows',
-      ],
+  // Normalize incoming data: convert string items to { name: string, is_visible: boolean }
+  const normalizeList = (list) => {
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => {
+      if (typeof item === 'string') {
+        return { name: item, is_visible: true };
+      }
+      // Agar item object hai:
+      const val = item?.is_visible;
+      const isVisible = (val === true || val === 1 || val === '1' || val === 'true');
+      return {
+        name: item?.name || '',
+        is_visible: isVisible,
+      };
+    });
+  };
+
+  const [amenities, setAmenities] = useState({
+    external: [],
+    internal: [],
+  });
+
+  // Direct fetch from /api/amenities to guarantee all unchecked items are always fetched from DB
+  const loadFullAmenities = async () => {
+    try {
+      const res = await fetchAmenities();
+      if (res && (Array.isArray(res.external) || Array.isArray(res.internal))) {
+        setAmenities({
+          external: normalizeList(res.external),
+          internal: normalizeList(res.internal),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load full amenities:', err);
     }
-  );
+  };
+
+  useEffect(() => {
+    loadFullAmenities();
+  }, []);
+
+  // Sync ONLY when parent data has full all_external or all_internal objects
+  useEffect(() => {
+    if (Array.isArray(data?.all_external) || Array.isArray(data?.all_internal)) {
+      setAmenities({
+        external: normalizeList(data.all_external),
+        internal: normalizeList(data.all_internal),
+      });
+    }
+  }, [data?.all_external, data?.all_internal]);
 
   const [newExt, setNewExt] = useState('');
   const [newInt, setNewInt] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
-  const addExternal = () => {
+  const addExternal = async () => {
     if (!newExt.trim()) return;
-    setAmenities({ ...amenities, external: [...amenities.external, newExt.trim()] });
+    const itemToAdd = { name: newExt.trim(), is_visible: true };
+    const updated = {
+      ...amenities,
+      external: [...(amenities.external || []), itemToAdd],
+    };
+    setAmenities(updated);
     setNewExt('');
+    setSaving(true);
+    try {
+      await saveAmenitiesList(updated);
+      setMessage('New amenity inserted and saved into MySQL!');
+      await loadFullAmenities();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert('Error inserting amenity: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeExternal = (index) => {
-    setAmenities({
-      ...amenities,
-      external: amenities.external.filter((_, i) => i !== index),
-    });
+  const toggleExternalVisibility = async (index) => {
+    const updatedList = [...(amenities.external || [])];
+    updatedList[index] = { ...updatedList[index], is_visible: !updatedList[index].is_visible };
+    const updated = { ...amenities, external: updatedList };
+    setAmenities(updated);
+    try {
+      await saveAmenitiesList(updated);
+      await loadFullAmenities();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Error toggling visibility:', err);
+    }
   };
 
-  const addInternal = () => {
+  const addInternal = async () => {
     if (!newInt.trim()) return;
-    setAmenities({ ...amenities, internal: [...amenities.internal, newInt.trim()] });
+    const itemToAdd = { name: newInt.trim(), is_visible: true };
+    const updated = {
+      ...amenities,
+      internal: [...(amenities.internal || []), itemToAdd],
+    };
+    setAmenities(updated);
     setNewInt('');
+    setSaving(true);
+    try {
+      await saveAmenitiesList(updated);
+      setMessage('New amenity inserted and saved into MySQL!');
+      await loadFullAmenities();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert('Error inserting amenity: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeInternal = (index) => {
-    setAmenities({
-      ...amenities,
-      internal: amenities.internal.filter((_, i) => i !== index),
-    });
+  const toggleInternalVisibility = async (index) => {
+    const updatedList = [...(amenities.internal || [])];
+    updatedList[index] = { ...updatedList[index], is_visible: !updatedList[index].is_visible };
+    const updated = { ...amenities, internal: updatedList };
+    setAmenities(updated);
+    try {
+      await saveAmenitiesList(updated);
+      await loadFullAmenities();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Error toggling visibility:', err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -62,6 +138,7 @@ export default function AmenitiesSettings({ data, onRefresh }) {
     try {
       await saveAmenitiesList(amenities);
       setMessage('Amenities updated successfully in MySQL!');
+      await loadFullAmenities();
       if (onRefresh) onRefresh();
     } catch (err) {
       alert('Error updating amenities: ' + err.message);
@@ -78,7 +155,7 @@ export default function AmenitiesSettings({ data, onRefresh }) {
           <span>Amenities Settings</span>
         </h2>
         <p className="text-sm text-slate-500 mt-1">
-          Manage internal fitment features and external club lifestyle amenities.
+          Manage internal and external amenities. Amenities are permanent in the database — simply check or uncheck to show or hide them on the website.
         </p>
       </div>
 
@@ -91,10 +168,17 @@ export default function AmenitiesSettings({ data, onRefresh }) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* External / Club Amenities */}
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3.5">
-              External / Club Amenities
-            </h3>
+            <div className="flex items-center justify-between mb-3.5">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                External / Club Amenities
+              </h3>
+              <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                {(amenities.external || []).filter(item => item.is_visible).length} / {(amenities.external || []).length} Visible
+              </span>
+            </div>
+
             <div className="flex gap-2.5 mb-4">
               <input
                 type="text"
@@ -112,34 +196,70 @@ export default function AmenitiesSettings({ data, onRefresh }) {
               <button
                 type="button"
                 onClick={addExternal}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all shadow-xs"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all shadow-xs flex items-center gap-1.5"
               >
-                Add
+                <Plus size={16} />
+                <span>Add</span>
               </button>
             </div>
+
             <ul className="space-y-2.5">
-              {amenities.external.map((item, idx) => (
+              {(amenities.external || []).map((item, idx) => (
                 <li
                   key={idx}
-                  className="flex items-center justify-between text-sm font-medium bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs"
+                  className={`flex items-center justify-between text-sm font-medium px-4 py-3 rounded-xl border transition-all ${
+                    item.is_visible
+                      ? 'bg-white border-slate-200 shadow-2xs text-slate-800'
+                      : 'bg-white border-slate-200 shadow-2xs text-slate-700'
+                  }`}
                 >
-                  <span className="text-slate-800">{item}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeExternal(idx)}
-                    className="text-red-500 hover:text-red-700 p-1 cursor-pointer transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <label className="flex items-center gap-3 cursor-pointer select-none flex-1 min-w-0 pr-2">
+                    <input
+                      type="checkbox"
+                      checked={!!item.is_visible}
+                      onChange={() => toggleExternalVisibility(idx)}
+                      className="w-4 h-4 rounded text-[#e2572b] focus:ring-[#e2572b] border-slate-300 cursor-pointer accent-[#e2572b]"
+                    />
+                    <span className="break-words truncate text-slate-800 font-medium">
+                      {item.name}
+                    </span>
+                    {!item.is_visible && (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        Hidden from UI
+                      </span>
+                    )}
+                  </label>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleExternalVisibility(idx)}
+                      title={item.is_visible ? "Hide from website" : "Show on website"}
+                      className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+                        item.is_visible
+                          ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                          : 'text-amber-600 hover:text-amber-800 hover:bg-amber-100'
+                      }`}
+                    >
+                      {item.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* Internal Residence Amenities */}
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3.5">
-              Internal Residence Amenities
-            </h3>
+            <div className="flex items-center justify-between mb-3.5">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                Internal Residence Amenities
+              </h3>
+              <span className="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                {(amenities.internal || []).filter(item => item.is_visible).length} / {(amenities.internal || []).length} Visible
+              </span>
+            </div>
+
             <div className="flex gap-2.5 mb-4">
               <input
                 type="text"
@@ -157,39 +277,68 @@ export default function AmenitiesSettings({ data, onRefresh }) {
               <button
                 type="button"
                 onClick={addInternal}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all shadow-xs"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all shadow-xs flex items-center gap-1.5"
               >
-                Add
+                <Plus size={16} />
+                <span>Add</span>
               </button>
             </div>
+
             <ul className="space-y-2.5">
-              {amenities.internal.map((item, idx) => (
+              {(amenities.internal || []).map((item, idx) => (
                 <li
                   key={idx}
-                  className="flex items-center justify-between text-sm font-medium bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs"
+                  className={`flex items-center justify-between text-sm font-medium px-4 py-3 rounded-xl border transition-all ${
+                    item.is_visible
+                      ? 'bg-white border-slate-200 shadow-2xs text-slate-800'
+                      : 'bg-white border-slate-200 shadow-2xs text-slate-700'
+                  }`}
                 >
-                  <span className="text-slate-800">{item}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeInternal(idx)}
-                    className="text-red-500 hover:text-red-700 p-1 cursor-pointer transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <label className="flex items-center gap-3 cursor-pointer select-none flex-1 min-w-0 pr-2">
+                    <input
+                      type="checkbox"
+                      checked={!!item.is_visible}
+                      onChange={() => toggleInternalVisibility(idx)}
+                      className="w-4 h-4 rounded text-[#e2572b] focus:ring-[#e2572b] border-slate-300 cursor-pointer accent-[#e2572b]"
+                    />
+                    <span className="break-words truncate text-slate-800 font-medium">
+                      {item.name}
+                    </span>
+                    {!item.is_visible && (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        Hidden from UI
+                      </span>
+                    )}
+                  </label>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleInternalVisibility(idx)}
+                      title={item.is_visible ? "Hide from website" : "Show on website"}
+                      className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
+                        item.is_visible
+                          ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                          : 'text-amber-600 hover:text-amber-800 hover:bg-amber-100'
+                      }`}
+                    >
+                      {item.is_visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="pt-5 border-t border-slate-100 flex justify-end">
+        <div className="flex justify-end pt-4 border-t border-slate-100">
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 bg-[#0f2444] hover:bg-[#1a3867] text-white text-sm font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#0f2444] hover:bg-[#1a3860] text-white text-sm font-bold px-7 py-3.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
-            <Save size={16} />
-            <span>{saving ? 'Saving...' : 'Save Amenities Changes'}</span>
+            <Save size={18} />
+            <span>{saving ? 'Saving...' : 'Save All Amenities'}</span>
           </button>
         </div>
       </form>

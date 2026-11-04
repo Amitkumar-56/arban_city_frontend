@@ -5,17 +5,34 @@ import FileUpload from './FileUpload';
 
 export default function DeveloperSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    company_name: data?.company_name || data?.name || 'Delta & Tricity Group',
-    description:
-      data?.description ||
-      'Delta & Tricity Group is a renowned real estate developer delivering premium residential projects with quality construction, timely delivery and customer satisfaction.',
-    channel_partner_rera: data?.channel_partner_rera || 'A09000021404',
-    project_rera: data?.project_rera || 'PR1331012500415',
+    company_name: data?.company_name || data?.name || '',
+    description: data?.description ?? '',
+    channel_partner_rera: data?.channel_partner_rera ?? '',
+    project_rera: data?.project_rera ?? '',
     qr_image: data?.qr_image || '',
     developer_logo: data?.developer_logo || '',
-    digipace_rera: data?.digipace_rera || 'A51700026634',
+    developer_logo_alt: data?.developer_logo_alt || '',
+    developer_logo_title: data?.developer_logo_title || '',
+    developer_logo_loading: data?.developer_logo_loading || 'lazy',
+    developer_logo_decoding: data?.developer_logo_decoding || 'async',
+    developer_logo_width: data?.developer_logo_width || '',
+    developer_logo_height: data?.developer_logo_height || '',
+    qr_image: data?.qr_image || '',
+    qr_image_alt: data?.qr_image_alt || '',
+    qr_image_title: data?.qr_image_title || '',
+    qr_image_loading: data?.qr_image_loading || 'lazy',
+    qr_image_decoding: data?.qr_image_decoding || 'async',
+    qr_image_width: data?.qr_image_width || '',
+    qr_image_height: data?.qr_image_height || '',
+    digipace_rera: data?.digipace_rera ?? '',
     digipace_qr: data?.digipace_qr || '',
-    maharera_website: data?.maharera_website || 'https://maharera.maharashtra.gov.in/',
+    digipace_qr_alt: data?.digipace_qr_alt || '',
+    digipace_qr_title: data?.digipace_qr_title || '',
+    digipace_qr_loading: data?.digipace_qr_loading || 'lazy',
+    digipace_qr_decoding: data?.digipace_qr_decoding || 'async',
+    digipace_qr_width: data?.digipace_qr_width || '',
+    digipace_qr_height: data?.digipace_qr_height || '',
+    maharera_website: data?.maharera_website ?? '',
     social_facebook: data?.social_facebook || '',
     social_instagram: data?.social_instagram || '',
     social_linkedin: data?.social_linkedin || '',
@@ -48,7 +65,7 @@ export default function DeveloperSettings({ data, onRefresh }) {
           Developer &amp; MahaRERA Compliance Manager
         </h2>
         <p className="text-sm text-slate-500 mt-1">
-          Manage developer profile, logo, Project MahaRERA, Digipace Agent MahaRERA credentials, and social media links.
+          Manage developer profile, Project MahaRERA, and Digipace Agent MahaRERA credentials.
         </p>
       </div>
 
@@ -76,12 +93,6 @@ export default function DeveloperSettings({ data, onRefresh }) {
             />
           </div>
 
-          <FileUpload
-            label="Developer Company Logo (Optional)"
-            value={formData.developer_logo || ''}
-            onChange={(url) => setFormData({ ...formData, developer_logo: url })}
-          />
-
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1.5">Developer Description</label>
             <textarea
@@ -103,17 +114,6 @@ export default function DeveloperSettings({ data, onRefresh }) {
             </h3>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">Official MahaRERA Website URL</label>
-            <input
-              type="url"
-              required
-              value={formData.maharera_website || ''}
-              onChange={(e) => setFormData({ ...formData, maharera_website: e.target.value })}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#e2572b]"
-            />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-slate-50/70 border border-slate-200 rounded-2xl">
             {/* Box 1: Project MahaRERA */}
             <div className="space-y-4 bg-white p-4 rounded-xl border border-slate-200">
@@ -133,8 +133,21 @@ export default function DeveloperSettings({ data, onRefresh }) {
 
               <FileUpload
                 label="Project MahaRERA QR Code (Image)"
+                category="rera"
                 value={formData.qr_image || ''}
                 onChange={(url) => setFormData({ ...formData, qr_image: url })}
+                alt={formData.qr_image_alt}
+                onAltChange={(val) => setFormData((prev) => ({ ...prev, qr_image_alt: val }))}
+                title={formData.qr_image_title}
+                onTitleChange={(val) => setFormData((prev) => ({ ...prev, qr_image_title: val }))}
+                loading={formData.qr_image_loading}
+                onLoadingChange={(val) => setFormData((prev) => ({ ...prev, qr_image_loading: val }))}
+                decoding={formData.qr_image_decoding}
+                onDecodingChange={(val) => setFormData((prev) => ({ ...prev, qr_image_decoding: val }))}
+                width={formData.qr_image_width}
+                onWidthChange={(val) => setFormData((prev) => ({ ...prev, qr_image_width: val }))}
+                height={formData.qr_image_height}
+                onHeightChange={(val) => setFormData((prev) => ({ ...prev, qr_image_height: val }))}
               />
             </div>
 
@@ -156,64 +169,21 @@ export default function DeveloperSettings({ data, onRefresh }) {
 
               <FileUpload
                 label="Digipace Agent MahaRERA QR Code (Image)"
+                category="rera"
                 value={formData.digipace_qr || ''}
                 onChange={(url) => setFormData({ ...formData, digipace_qr: url })}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 3: Social Media Links */}
-        <div className="pt-6 border-t border-slate-100 space-y-4">
-          <div className="flex items-center gap-2">
-            <Share2 size={18} className="text-slate-600" />
-            <h3 className="text-base font-bold text-slate-900">
-              3. Social Media Links
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Facebook Profile URL</label>
-              <input
-                type="url"
-                placeholder="https://facebook.com/..."
-                value={formData.social_facebook || ''}
-                onChange={(e) => setFormData({ ...formData, social_facebook: e.target.value })}
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Instagram Profile URL</label>
-              <input
-                type="url"
-                placeholder="https://instagram.com/..."
-                value={formData.social_instagram || ''}
-                onChange={(e) => setFormData({ ...formData, social_instagram: e.target.value })}
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">LinkedIn Profile URL</label>
-              <input
-                type="url"
-                placeholder="https://linkedin.com/company/..."
-                value={formData.social_linkedin || ''}
-                onChange={(e) => setFormData({ ...formData, social_linkedin: e.target.value })}
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">YouTube Channel URL</label>
-              <input
-                type="url"
-                placeholder="https://youtube.com/..."
-                value={formData.social_youtube || ''}
-                onChange={(e) => setFormData({ ...formData, social_youtube: e.target.value })}
-                className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm"
+                alt={formData.digipace_qr_alt}
+                onAltChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_alt: val }))}
+                title={formData.digipace_qr_title}
+                onTitleChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_title: val }))}
+                loading={formData.digipace_qr_loading}
+                onLoadingChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_loading: val }))}
+                decoding={formData.digipace_qr_decoding}
+                onDecodingChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_decoding: val }))}
+                width={formData.digipace_qr_width}
+                onWidthChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_width: val }))}
+                height={formData.digipace_qr_height}
+                onHeightChange={(val) => setFormData((prev) => ({ ...prev, digipace_qr_height: val }))}
               />
             </div>
           </div>

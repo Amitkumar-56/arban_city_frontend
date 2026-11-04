@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import reraQrImg from '../assets/rera_qr.webp';
 import { resolveAssetUrl } from '../admin/api';
 
-export default function DeveloperAndRera({ data, projectTitle = 'Aveon City Sector Zero' }) {
+export default function DeveloperAndRera({ data, projectTitle = 'Arban City Sector 0' }) {
   const devName = data?.company_name || data?.name || 'Delta Tricity';
   const desc = data?.description || (
     <>
@@ -42,7 +42,12 @@ export default function DeveloperAndRera({ data, projectTitle = 'Aveon City Sect
             {devLogo && (
               <img
                 src={resolveAssetUrl(devLogo)}
-                alt={`${devName} Logo`}
+                alt={data?.developer_logo_alt || `${devName} Logo`}
+                title={data?.developer_logo_title || `${devName} Official Logo`}
+                loading={data?.developer_logo_loading || "lazy"}
+                decoding={data?.developer_logo_decoding || "async"}
+                width={data?.developer_logo_width || undefined}
+                height={data?.developer_logo_height || undefined}
                 className="h-10 md:h-12 max-w-[120px] object-contain rounded p-1 border border-[#E2E7EE] bg-white shadow-xs"
               />
             )}
@@ -150,7 +155,12 @@ export default function DeveloperAndRera({ data, projectTitle = 'Aveon City Sect
               >
                 <img
                   src={resolveAssetUrl(projectQr)}
-                  alt="Project MahaRERA QR"
+                  alt={data?.qr_image_alt || `Project MahaRERA QR - ${projectRera}`}
+                  title={data?.qr_image_title || `Scan Project MahaRERA ${projectRera}`}
+                  loading={data?.qr_image_loading || "lazy"}
+                  decoding={data?.qr_image_decoding || "async"}
+                  width={data?.qr_image_width || undefined}
+                  height={data?.qr_image_height || undefined}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = '/rera_qr.webp';
@@ -163,7 +173,12 @@ export default function DeveloperAndRera({ data, projectTitle = 'Aveon City Sect
               >
                 <img
                   src={resolveAssetUrl(digipaceQr)}
-                  alt="DigiPace MahaRERA QR"
+                  alt={data?.digipace_qr_alt || `DigiPace Agent MahaRERA QR - ${agentRera}`}
+                  title={data?.digipace_qr_title || `Scan DigiPace Agent MahaRERA ${agentRera}`}
+                  loading={data?.digipace_qr_loading || "lazy"}
+                  decoding={data?.digipace_qr_decoding || "async"}
+                  width={data?.digipace_qr_width || undefined}
+                  height={data?.digipace_qr_height || undefined}
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = '/rera_qr.webp';

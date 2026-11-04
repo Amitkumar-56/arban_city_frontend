@@ -111,29 +111,28 @@ export default function Navbar({ data }) {
         id="top"
       >
         <div className="contents md:flex md:items-center md:gap-1.5 xl:gap-2 md:shrink-0">
-          {/* Boxed Logo with Orange Border on desktop */}
+          {/* Project Logo Image */}
           <a
-            className="col-start-1 row-start-1 justify-self-start md:col-auto md:row-auto md:justify-self-auto md:border-[1.5px] md:border-[#F26635] md:px-1.5 md:py-0.5 xl:px-2 xl:py-1 font-['Manrope',sans-serif] font-extrabold text-[13px] md:text-[13.5px] xl:text-[14.5px] leading-tight text-[#111D46] tracking-normal whitespace-nowrap bg-white flex flex-col justify-center select-none shrink-0"
+            className="col-start-1 row-start-1 justify-self-start md:col-auto md:row-auto md:justify-self-auto flex items-center h-8 md:h-9 max-w-[140px] select-none shrink-0"
             href="#home"
             aria-label={`${titlePart1} ${titlePart2} home`}
           >
-            {logoType === 'image' && logoImage && failedLogoImage !== logoImage ? (
+            {logoImage && failedLogoImage !== logoImage ? (
               <img
                 src={resolveAssetUrl(logoImage)}
-                alt={`${titlePart1} ${titlePart2}`}
-                className="h-6.5 md:h-7.5 max-w-[120px] object-contain"
+                alt={data?.logo_alt || `${titlePart1} ${titlePart2} Project Brand Logo`}
+                title={data?.logo_title || `${titlePart1} ${titlePart2}`}
+                loading={data?.logo_loading || 'lazy'}
+                decoding={data?.logo_decoding || 'async'}
+                width={data?.logo_width || undefined}
+                height={data?.logo_height || undefined}
+                className="h-7 md:h-8 max-w-[130px] object-contain"
                 onError={() => setFailedLogoImage(logoImage)}
               />
             ) : (
-              <>
-                <div>
-                  {titlePart1}{' '}
-                  <span className="text-[#F26635] not-italic">{titlePart2}</span>
-                </div>
-                <small className="block font-bold text-[6px] md:text-[6.5px] xl:text-[7px] tracking-[1.5px] xl:tracking-[2px] text-[#67748A] mt-0.5 uppercase">
-                  {subtitle}
-                </small>
-              </>
+              <span className="font-['Manrope',sans-serif] font-extrabold text-[15px] text-[#111D46]">
+                {titlePart1} <span className="text-[#F26635]">{titlePart2}</span>
+              </span>
             )}
           </a>
           <span className="hidden md:block w-px h-[20px] bg-[#DDE2EC]" aria-hidden="true"></span>
@@ -145,7 +144,12 @@ export default function Navbar({ data }) {
             {data?.partner_logo && failedPartnerLogo !== data.partner_logo ? (
               <img
                 src={resolveAssetUrl(data.partner_logo)}
-                alt="Partner logo"
+                alt={data?.partner_logo_alt || "Authorized Sales Partner DigiPace Logo"}
+                title={data?.partner_logo_title || "DigiPace Consulting Authorized Partner"}
+                loading={data?.partner_logo_loading || "lazy"}
+                decoding={data?.partner_logo_decoding || "async"}
+                width={data?.partner_logo_width || undefined}
+                height={data?.partner_logo_height || undefined}
                 className="w-full h-7 object-contain"
                 onError={() => setFailedPartnerLogo(data.partner_logo)}
               />

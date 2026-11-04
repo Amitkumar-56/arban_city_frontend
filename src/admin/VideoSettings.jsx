@@ -1,18 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { updateVideo } from './api';
 import { Save, CheckCircle, Video as VideoIcon } from 'lucide-react';
 import FileUpload from './FileUpload';
 
 export default function VideoSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    title: data?.title || 'Walkthrough Video',
-    description:
-      data?.description ||
-      'Take a virtual tour of Arban City and experience the spaces, amenities and lifestyle it has to offer.',
+    title: data?.title ?? '',
+    description: data?.description ?? '',
     video_url: data?.video_url || '',
     video_thumbnail: data?.video_thumbnail || '',
+    video_thumbnail_alt: data?.video_thumbnail_alt || '',
+    video_thumbnail_title: data?.video_thumbnail_title || '',
+    video_thumbnail_loading: data?.video_thumbnail_loading || 'lazy',
+    video_thumbnail_decoding: data?.video_thumbnail_decoding || 'async',
+    video_thumbnail_width: data?.video_thumbnail_width || '',
+    video_thumbnail_height: data?.video_thumbnail_height || '',
     sample_flat_image: data?.sample_flat_image || '',
+    sample_flat_image_alt: data?.sample_flat_image_alt || '',
+    sample_flat_image_title: data?.sample_flat_image_title || '',
+    sample_flat_image_loading: data?.sample_flat_image_loading || 'lazy',
+    sample_flat_image_decoding: data?.sample_flat_image_decoding || 'async',
+    sample_flat_image_width: data?.sample_flat_image_width || '',
+    sample_flat_image_height: data?.sample_flat_image_height || '',
   });
+
+  useEffect(() => {
+    if (data && typeof data === 'object') {
+      setFormData({
+        title: data.title ?? '',
+        description: data.description ?? '',
+        video_url: data.video_url || '',
+        video_thumbnail: data.video_thumbnail || '',
+        video_thumbnail_alt: data.video_thumbnail_alt || '',
+        video_thumbnail_title: data.video_thumbnail_title || '',
+        video_thumbnail_loading: data.video_thumbnail_loading || 'lazy',
+        video_thumbnail_decoding: data.video_thumbnail_decoding || 'async',
+        video_thumbnail_width: data.video_thumbnail_width || '',
+        video_thumbnail_height: data.video_thumbnail_height || '',
+        sample_flat_image: data.sample_flat_image || '',
+        sample_flat_image_alt: data.sample_flat_image_alt || '',
+        sample_flat_image_title: data.sample_flat_image_title || '',
+        sample_flat_image_loading: data.sample_flat_image_loading || 'lazy',
+        sample_flat_image_decoding: data.sample_flat_image_decoding || 'async',
+        sample_flat_image_width: data.sample_flat_image_width || '',
+        sample_flat_image_height: data.sample_flat_image_height || '',
+      });
+    }
+  }, [data]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -73,12 +107,28 @@ export default function VideoSettings({ data, onRefresh }) {
         </div>
 
         <div className="space-y-5">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <label className="block text-sm font-bold text-slate-800 mb-1">
+              YouTube Video URL or Video ID (Direct Iframe Display)
+            </label>
+            <p className="text-xs text-slate-500 mb-2">
+              Enter full YouTube URL (e.g. <code>https://www.youtube.com/watch?v=VIDEO_ID</code>, <code>https://youtu.be/VIDEO_ID</code>) or just the <code>VIDEO_ID</code>. YouTube automatically provides its official thumbnail and play button.
+            </p>
+            <input
+              type="text"
+              placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or dQw4w9WgXcQ"
+              value={formData.video_url || ''}
+              onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:border-[#e2572b] focus:ring-2 focus:ring-[#e2572b]/20 transition-all bg-white"
+            />
+          </div>
+
           <div>
             <FileUpload
-              label="Upload Walkthrough Video File (.mp4, .webm, .mov)"
+              label="Or Upload Direct Video File (.mp4, .webm) if not using YouTube"
               accept="video/*"
               isVideo={true}
-              value={formData.video_url || ''}
+              value={formData.video_url && !formData.video_url.includes('youtu') ? formData.video_url : ''}
               onChange={(url) => setFormData({ ...formData, video_url: url })}
             />
           </div>
@@ -87,16 +137,42 @@ export default function VideoSettings({ data, onRefresh }) {
             <FileUpload
               label="Upload Video Poster Thumbnail (Optional)"
               accept="image/*"
+              category="video-thumbnails"
               value={formData.video_thumbnail || ''}
               onChange={(url) => setFormData({ ...formData, video_thumbnail: url })}
+              alt={formData.video_thumbnail_alt}
+              onAltChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_alt: val }))}
+              title={formData.video_thumbnail_title}
+              onTitleChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_title: val }))}
+              loading={formData.video_thumbnail_loading}
+              onLoadingChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_loading: val }))}
+              decoding={formData.video_thumbnail_decoding}
+              onDecodingChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_decoding: val }))}
+              width={formData.video_thumbnail_width}
+              onWidthChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_width: val }))}
+              height={formData.video_thumbnail_height}
+              onHeightChange={(val) => setFormData((prev) => ({ ...prev, video_thumbnail_height: val }))}
             />
           </div>
           <div>
             <FileUpload
               label="Sample Flat Tour Image"
               accept="image/*"
+              category="video-thumbnails"
               value={formData.sample_flat_image || ''}
               onChange={(url) => setFormData({ ...formData, sample_flat_image: url })}
+              alt={formData.sample_flat_image_alt}
+              onAltChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_alt: val }))}
+              title={formData.sample_flat_image_title}
+              onTitleChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_title: val }))}
+              loading={formData.sample_flat_image_loading}
+              onLoadingChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_loading: val }))}
+              decoding={formData.sample_flat_image_decoding}
+              onDecodingChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_decoding: val }))}
+              width={formData.sample_flat_image_width}
+              onWidthChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_width: val }))}
+              height={formData.sample_flat_image_height}
+              onHeightChange={(val) => setFormData((prev) => ({ ...prev, sample_flat_image_height: val }))}
             />
           </div>
         </div>

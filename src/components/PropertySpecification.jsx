@@ -1,14 +1,8 @@
-export default function PropertySpecification({ data, projectTitle = 'Aveon City Sector Zero' }) {
-  const defaultSpecs = [
-    `${projectTitle} is a residential development by Delta Tricity`,
-    'Located in Airoli, Navi Mumbai',
-    'Planned across approximately 5.5 acres of land',
-    'Planned with 3 towers rising 35+ storeys',
-    'Configurations include 1, 2 & 3 BHK residences',
-    'Indicative prices start from ₹89 Lakhs*',
-  ];
+import { resolveAssetUrl } from '../admin/api';
 
-  const specs = Array.isArray(data) && data.length > 0 ? data : defaultSpecs;
+export default function PropertySpecification({ data, projectTitle = 'Arban City Sector 0' }) {
+  const specs = Array.isArray(data) ? data : [];
+  if (specs.length === 0) return null;
 
   return (
     <section className="section-card" id="specifications">
@@ -16,7 +10,7 @@ export default function PropertySpecification({ data, projectTitle = 'Aveon City
       <div className="border border-[#CFD3D8] mt-4 md:mx-4 divide-y divide-[#E5E5E5]">
         {specs.map((item, idx) => (
           <div
-            key={idx}
+            key={item.id || idx}
             className={`flex items-center gap-2.5 min-h-10 px-3.5 py-2 text-xs md:text-sm leading-normal ${
               idx % 2 === 0 ? 'bg-[#F2F2F2]' : 'bg-white'
             }`}

@@ -10,11 +10,8 @@ const LEGACY_DEFAULT_DESCRIPTION =
 
 export default function ConstructionSettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    title: data?.title || 'Construction Status',
-    description:
-      data?.description && data.description !== LEGACY_DEFAULT_DESCRIPTION
-        ? data.description
-        : DEFAULT_DESCRIPTION,
+    title: data?.title ?? '',
+    description: data?.description ?? '',
     images: (data?.images || data?.cards || []).map((image, index) => (
       typeof image === 'string'
         ? { img: image, title: `Construction Update ${index + 1}` }
@@ -143,8 +140,45 @@ export default function ConstructionSettings({ data, onRefresh }) {
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
                 />
                 <FileUpload
+                  category="construction"
                   value={typeof imgUrl === 'string' ? imgUrl : imgUrl.img || ''}
                   onChange={(url) => handleImageChange(index, url)}
+                  alt={typeof imgUrl === 'object' ? imgUrl.alt : ''}
+                  onAltChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], alt: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  title={typeof imgUrl === 'object' ? imgUrl.title : ''}
+                  onTitleChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], title: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  loading={typeof imgUrl === 'object' ? imgUrl.loading : 'lazy'}
+                  onLoadingChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], loading: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  decoding={typeof imgUrl === 'object' ? imgUrl.decoding : 'async'}
+                  onDecodingChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], decoding: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  width={typeof imgUrl === 'object' ? imgUrl.width : ''}
+                  onWidthChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], width: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
+                  height={typeof imgUrl === 'object' ? imgUrl.height : ''}
+                  onHeightChange={(val) => {
+                    const updated = [...formData.images];
+                    updated[index] = { ...updated[index], height: val };
+                    setFormData({ ...formData, images: updated });
+                  }}
                 />
               </div>
             ))}

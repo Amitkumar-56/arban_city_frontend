@@ -10,36 +10,7 @@ export default function FaqSettings({ data, onRefresh }) {
   }));
 
   const [faqs, setFaqs] = useState(
-    initialFaqs.length > 0
-      ? initialFaqs
-      : [
-          {
-            id: 1,
-            question: 'What is the possession timeline for Arban City?',
-            answer:
-              'The expected possession date for Arban City Sector 0 is scheduled for December 2028* as per MahaRERA registration.',
-          },
-          {
-            id: 2,
-            question: 'How far is Arban City from Airoli Railway Station?',
-            answer: 'The project is conveniently located just 7-10 minutes from Airoli Railway Station.',
-          },
-          {
-            id: 3,
-            question: 'Are there schools and hospitals nearby?',
-            answer: 'Yes, leading hospitals and schools are within a 2-3 km radius.',
-          },
-          {
-            id: 4,
-            question: 'Does Arban City offer covered parking?',
-            answer: 'Yes, dedicated covered parking is provided for residents.',
-          },
-          {
-            id: 5,
-            question: 'What configurations are available in the project?',
-            answer: 'Arban City offers 1, 2 and 3 BHK residential apartments.',
-          },
-        ]
+    initialFaqs
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');

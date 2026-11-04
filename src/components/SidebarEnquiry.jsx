@@ -194,6 +194,9 @@ export default function SidebarEnquiry({ data, onOpenModal, showToast }) {
               <img
                 src={resolveAssetUrl(projectQr)}
                 alt="Project MahaRERA QR code"
+                title={`Project MahaRERA QR - ${projectRera}`}
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/rera_qr.webp';
@@ -213,6 +216,9 @@ export default function SidebarEnquiry({ data, onOpenModal, showToast }) {
               <img
                 src={resolveAssetUrl(digipaceQr)}
                 alt="DigiPace MahaRERA QR code"
+                title={`DigiPace MahaRERA QR - ${agentRera}`}
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/rera_qr.webp';
@@ -234,17 +240,15 @@ export default function SidebarEnquiry({ data, onOpenModal, showToast }) {
           <button
             type="button"
             onClick={() => setQrSlide(0)}
-            className={`h-1 rounded-full transition-all border-0 cursor-pointer ${
-              qrSlide === 0 ? 'w-4 bg-[#F26635]' : 'w-1.5 bg-[#D1D5DB]'
-            }`}
+            className={`h-1 rounded-full transition-all border-0 cursor-pointer ${qrSlide === 0 ? 'w-4 bg-[#F26635]' : 'w-1.5 bg-[#D1D5DB]'
+              }`}
             aria-label="Project QR Slide"
           />
           <button
             type="button"
             onClick={() => setQrSlide(1)}
-            className={`h-1 rounded-full transition-all border-0 cursor-pointer ${
-              qrSlide === 1 ? 'w-4 bg-[#F26635]' : 'w-1.5 bg-[#D1D5DB]'
-            }`}
+            className={`h-1 rounded-full transition-all border-0 cursor-pointer ${qrSlide === 1 ? 'w-4 bg-[#F26635]' : 'w-1.5 bg-[#D1D5DB]'
+              }`}
             aria-label="DigiPace QR Slide"
           />
         </div>
@@ -297,13 +301,20 @@ export default function SidebarEnquiry({ data, onOpenModal, showToast }) {
             required
             className="mt-0.5 shrink-0 accent-[#F26635] w-3 h-3"
           />
-          <span className='!text-[10px] '>
-            I Consent to The Processing of Provided Data According To{' '}
-            <a href="#privacy-policy" target="_blank" rel="noopener noreferrer" className="underline text-[#F26635] font-semibold">
-              Privacy Policy &amp; Terms
-            </a>
-            , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
-          </span>
+          {data?.privacy?.consent_text && typeof data.privacy.consent_text === 'string' && data.privacy.consent_text.trim() !== '' ? (
+            <span
+              className="!text-[10px] [&_a]:underline [&_a]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: data.privacy.consent_text }}
+            />
+          ) : (
+            <span className='!text-[10px] '>
+              I Consent to The Processing of Provided Data According To{' '}
+              <a href="#privacy-policy" target="_blank" rel="noopener noreferrer" className="underline  font-semibold">
+                Privacy Policy &amp; Terms
+              </a>
+              , I Authorize Digipace Consulting (OPC) Private Limited and its representatives to Call, SMS, Email or WhatsApp Me About Its Products and Offers. This Consent Overrides Any Registration For DNC/NDNC.
+            </span>
+          )}
         </label>
         <button
           className="self-center w-[150px] h-8 border-0 rounded-lg text-white font-['Manrope',sans-serif] font-bold text-xs fxGrad fxRock cursor-pointer shadow-xs mt-0.5"

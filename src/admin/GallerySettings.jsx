@@ -12,17 +12,10 @@ const DEFAULT_GALLERY_DESCRIPTION =
 
 export default function GallerySettings({ data, onRefresh }) {
   const [formData, setFormData] = useState({
-    title: data?.title || 'Elevation Images',
-    description:
-      data?.description && data.description !== LEGACY_DEFAULT_DESCRIPTION
-        ? data.description
-        : DEFAULT_DESCRIPTION,
-    gallery_description: data?.gallery_description || DEFAULT_GALLERY_DESCRIPTION,
-    items: data?.items || [
-      { id: 1, title: 'Elevation 1', image_url: '' },
-      { id: 2, title: 'Elevation 2', image_url: '' },
-      { id: 3, title: 'Skyline View', image_url: '' },
-    ],
+    title: data?.title ?? '',
+    description: data?.description ?? '',
+    gallery_description: data?.gallery_description ?? '',
+    items: data?.items || [],
   });
   const [projectItems, setProjectItems] = useState(
     Array.isArray(data?.project_items) ? data.project_items : []
@@ -185,8 +178,21 @@ export default function GallerySettings({ data, onRefresh }) {
                 </div>
 
                 <FileUpload
+                  category="elevation"
                   value={item.image_url || ''}
                   onChange={(url) => handleItemChange(index, 'image_url', url)}
+                  alt={item.alt}
+                  onAltChange={(val) => handleItemChange(index, 'alt', val)}
+                  title={item.title}
+                  onTitleChange={(val) => handleItemChange(index, 'title', val)}
+                  loading={item.loading}
+                  onLoadingChange={(val) => handleItemChange(index, 'loading', val)}
+                  decoding={item.decoding}
+                  onDecodingChange={(val) => handleItemChange(index, 'decoding', val)}
+                  width={item.width}
+                  onWidthChange={(val) => handleItemChange(index, 'width', val)}
+                  height={item.height}
+                  onHeightChange={(val) => handleItemChange(index, 'height', val)}
                 />
               </div>
             ))}
@@ -221,8 +227,21 @@ export default function GallerySettings({ data, onRefresh }) {
                   />
                   <FileUpload
                     label="Image"
+                    category="gallery"
                     value={item.image_url || item.img || ''}
                     onChange={(url) => updatePhoto(group.key, index, 'image_url', url)}
+                    alt={item.alt}
+                    onAltChange={(val) => updatePhoto(group.key, index, 'alt', val)}
+                    title={item.title}
+                    onTitleChange={(val) => updatePhoto(group.key, index, 'title', val)}
+                    loading={item.loading}
+                    onLoadingChange={(val) => updatePhoto(group.key, index, 'loading', val)}
+                    decoding={item.decoding}
+                    onDecodingChange={(val) => updatePhoto(group.key, index, 'decoding', val)}
+                    width={item.width}
+                    onWidthChange={(val) => updatePhoto(group.key, index, 'width', val)}
+                    height={item.height}
+                    onHeightChange={(val) => updatePhoto(group.key, index, 'height', val)}
                   />
                 </div>
               ))}

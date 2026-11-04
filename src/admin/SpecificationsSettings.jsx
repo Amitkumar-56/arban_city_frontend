@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  fetchSpecifications,
-  createSpecification,
-  updateSpecification,
-  deleteSpecification,
-} from './api';
+import { fetchSpecifications, updateSpecificationsList } from './api';
 import { Plus, Edit2, Trash2, CheckCircle, ListChecks, Save, X } from 'lucide-react';
 
 export default function SpecificationsSettings({ onRefresh }) {
@@ -35,7 +30,8 @@ export default function SpecificationsSettings({ onRefresh }) {
     e.preventDefault();
     if (!newText.trim()) return;
     try {
-      await createSpecification({ text: newText.trim(), sort_order: specs.length + 1 });
+      const updated = [...specs, { text: newText.trim(), sort_order: specs.length + 1 }];
+      await updateSpecificationsList(updated);
       setNewText('');
       setMessage('Specification added successfully!');
       loadSpecs();
@@ -49,7 +45,8 @@ export default function SpecificationsSettings({ onRefresh }) {
   const handleUpdate = async (id) => {
     if (!editingText.trim()) return;
     try {
-      await updateSpecification(id, { text: editingText.trim() });
+      const updated = specs.map((s) => (s.id === id ? { ...s, text: editingText.trim() } : s));
+      await updateSpecificationsList(updated);
       setEditingId(null);
       setMessage('Specification updated successfully!');
       loadSpecs();
@@ -63,7 +60,8 @@ export default function SpecificationsSettings({ onRefresh }) {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this specification?')) return;
     try {
-      await deleteSpecification(id);
+      const updated = specs.filter((s) => s.id !== id);
+      await updateSpecificationsList(updated);
       setMessage('Specification deleted successfully!');
       loadSpecs();
       if (onRefresh) onRefresh();

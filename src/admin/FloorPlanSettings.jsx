@@ -10,17 +10,16 @@ export default function FloorPlanSettings({ data, onRefresh }) {
     carpet_area: p.carpet_area || p.carpet || '413 Sq.ft',
     price: p.price || '₹89 Lakhs*',
     image_url: p.image_url || '',
+    alt: p.alt || '',
+    title: p.title || '',
+    loading: p.loading || 'lazy',
+    decoding: p.decoding || 'async',
+    width: p.width || '',
+    height: p.height || '',
   }));
 
   const [plans, setPlans] = useState(
-    initialPlans.length > 0
-      ? initialPlans
-      : [
-          { id: 1, unit_type: '1 BHK', carpet_area: '413 Sq.ft', price: '₹89 Lakhs*', image_url: '' },
-          { id: 2, unit_type: '2 BHK', carpet_area: '633 Sq.ft', price: '₹91 Lakhs*', image_url: '' },
-          { id: 3, unit_type: '3 BHK', carpet_area: '871 Sq.ft', price: '₹1.78 Cr*', image_url: '' },
-          { id: 4, unit_type: '3 BHK', carpet_area: '962 Sq.ft', price: '₹1.95 Cr*', image_url: '' },
-        ]
+    initialPlans
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -146,8 +145,21 @@ export default function FloorPlanSettings({ data, onRefresh }) {
               <div>
                 <FileUpload
                   label="Floor Plan Architecture Graphic / Blueprint"
+                  category="floor-plans"
                   value={item.image_url || ''}
                   onChange={(url) => handleChange(item.id, 'image_url', url)}
+                  alt={item.alt}
+                  onAltChange={(val) => handleChange(item.id, 'alt', val)}
+                  title={item.title}
+                  onTitleChange={(val) => handleChange(item.id, 'title', val)}
+                  loading={item.loading}
+                  onLoadingChange={(val) => handleChange(item.id, 'loading', val)}
+                  decoding={item.decoding}
+                  onDecodingChange={(val) => handleChange(item.id, 'decoding', val)}
+                  width={item.width}
+                  onWidthChange={(val) => handleChange(item.id, 'width', val)}
+                  height={item.height}
+                  onHeightChange={(val) => handleChange(item.id, 'height', val)}
                 />
               </div>
             </div>

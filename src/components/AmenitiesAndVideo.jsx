@@ -5,8 +5,8 @@ import heroSkyline from '../assets/hero_skyline.webp';
 export default function AmenitiesAndVideo({ data, videoData, onOpenModal }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const externalAmenities = Array.isArray(data?.external) ? data.external : [];
-  const internalAmenities = Array.isArray(data?.internal) ? data.internal : [];
+  const externalAmenities = (Array.isArray(data?.external) ? data.external : []).filter(item => typeof item === 'string' ? true : item?.is_visible !== false).map(item => typeof item === 'string' ? item : item?.name || '');
+  const internalAmenities = (Array.isArray(data?.internal) ? data.internal : []).filter(item => typeof item === 'string' ? true : item?.is_visible !== false).map(item => typeof item === 'string' ? item : item?.name || '');
 
   const videoTitle = videoData?.title || 'Walkthrough Video';
   const videoDesc = videoData?.description || '';
@@ -87,7 +87,7 @@ export default function AmenitiesAndVideo({ data, videoData, onOpenModal }) {
                 src={videoThumb}
                 alt={videoTitle}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+               loading="lazy" decoding="async"/>
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
               <button
                 type="button"

@@ -10,6 +10,13 @@ const DEFAULT_DESCRIPTION =
 const LEGACY_DEFAULT_DESCRIPTION =
   'Arban City offers a striking skyline with modern architecture and thoughtfully designed towers that blend luxury with comfort.';
 
+const DEFAULT_ELEVATIONS = [
+  { id: 1, title: 'Tower Elevation View', image_url: banner1 },
+  { id: 2, title: 'Podium & Landscape View', image_url: banner2 },
+  { id: 3, title: 'Sample Flat View', image_url: banner3 },
+  { id: 4, title: 'Project Skyline & Green View', image_url: heroSkyline },
+];
+
 export default function ElevationGallery({
   data,
   onOpenModal,
@@ -22,34 +29,15 @@ export default function ElevationGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartX = useRef(null);
 
-  const defaultElevations = [
-    {
-      img: banner1,
-      title: 'Tower Elevation',
-      sub: 'Front view from main access road',
-    },
-    {
-      img: banner2,
-      title: 'Podium & Landscape View',
-      sub: 'Landscaped amenity deck and recreational spaces',
-    },
-    {
-      img: banner3,
-      title: 'Sample Flat View',
-      sub: 'Interior design and living spaces',
-    },
-    {
-      img: heroSkyline,
-      title: 'Project Skyline',
-      sub: 'Panoramic view of the development',
-    },
-  ];
-
-  const items = Array.isArray(data?.items) && data.items.length > 0
+  const rawItems = Array.isArray(data?.items) && data.items.length > 0
     ? data.items
     : Array.isArray(data) && data.length > 0
       ? data
-      : defaultElevations;
+      : [];
+
+  const items = rawItems.length > 0 ? rawItems : DEFAULT_ELEVATIONS;
+
+  if (items.length === 0) return null;
   const rawTitle = data?.title ? data.title.trim() : 'Elevation Images';
   const title = rawTitle.toLowerCase().includes('arban city sector 0')
     ? rawTitle
@@ -85,13 +73,21 @@ export default function ElevationGallery({
   });
   const showPrevious = () => setActiveIndex((index) => (index - 1 + items.length) % items.length);
   const showNext = () => setActiveIndex((index) => (index + 1) % items.length);
-  const getImageUrl = (item, index) => resolveAssetUrl(
-    item.img || item.image_url || item.imageUrl || item.image || item.url || item.src
-    || defaultElevations[index % defaultElevations.length].img
-  );
-  const showFallbackImage = (event, index) => {
+  const getImageUrl = (item, index = 0) => {
+    const src = item?.img || item?.image_url || item?.imageUrl || item?.image || item?.url || item?.src;
+    if (!src || typeof src !== 'string' || src.trim() === '') {
+      return DEFAULT_ELEVATIONS[index % DEFAULT_ELEVATIONS.length].image_url;
+    }
+    return resolveAssetUrl(src);
+  };
+  const showFallbackImage = (event, index = 0) => {
     event.currentTarget.onerror = null;
-    event.currentTarget.src = defaultElevations[index % defaultElevations.length].img;
+    const currentSrc = event.currentTarget.src;
+    if (currentSrc.includes('/backend/public/')) {
+      event.currentTarget.src = currentSrc.replace('/backend/public/', '/');
+    } else {
+      event.currentTarget.src = DEFAULT_ELEVATIONS[index % DEFAULT_ELEVATIONS.length].image_url;
+    }
   };
 
   return (
@@ -115,9 +111,11 @@ export default function ElevationGallery({
                 >
                   <img
                     src={getImageUrl(item, index)}
-                    alt={item.title || 'Elevation Image'}
+                    alt={item.alt || item.title || 'Elevation Image'}
+                    title={item.title ? `${projectName} - ${item.title}` : `${projectName} Elevation`}
                     className="w-full h-[300px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                     loading="lazy"
+                    decoding="async"
                     onError={(event) => showFallbackImage(event, index)}
                   />
                   <span className="absolute right-2.5 bottom-2.5 bg-[#0a1023]/80 text-white font-bold text-[11px] px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -177,7 +175,12 @@ export default function ElevationGallery({
               >
                 <img
                   src={getImageUrl(activeItem, activeIndex)}
-                  alt={activeItem.title || 'Elevation Image'}
+                  alt={activeItem.alt || `${activeItem.title || 'Elevation View'} - ${projectName}`}
+                  title={activeItem.title ? `${projectName} - ${activeItem.title}` : `${projectName} Elevation`}
+                  loading={activeItem.loading || "lazy"}
+                  decoding={activeItem.decoding || "async"}
+                  width={activeItem.width || undefined}
+                  height={activeItem.height || undefined}
                   className="w-full h-[190px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   onError={(event) => showFallbackImage(event, activeIndex)}
                 />

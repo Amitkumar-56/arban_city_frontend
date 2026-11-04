@@ -1,30 +1,8 @@
 import React, { useState } from 'react';
 
-export default function FaqSection({ data, projectTitle = 'Aveon City Sector Zero' }) {
-  const defaultFaqs = [
-    {
-      q: `Where is ${projectTitle} located?`,
-      a: `${projectTitle} is located in Sector Zero, Airoli, Navi Mumbai, Maharashtra. It enjoys excellent connectivity to the Thane–Belapur Road, Airoli Railway Station, Eastern Express Highway, and major business parks including Mindspace IT Park.`,
-    },
-    {
-      q: `What configurations and sizes are available at ${projectTitle}?`,
-      a: `The project offers thoughtfully designed 1, 2, and 3 BHK luxury residences. The 1 BHK units start at 413 sq.ft, 2 BHK units at 625 sq.ft, and 3 BHK units up to 930 sq.ft carpet area.`,
-    },
-    {
-      q: `What is the starting price for residences?`,
-      a: `Pricing at ${projectTitle} starts at ₹89 Lacs* onwards for 1 BHK configurations. Detailed cost sheets, floor-wise pricing breakups, and customized payment plans are available on request.`,
-    },
-    {
-      q: `Is ${projectTitle} MahaRERA registered?`,
-      a: `Yes, the project is registered with MahaRERA under registration number P51700000000. All official project details, floor plans, approvals, and possession schedules can be verified on the MahaRERA website at maharera.maharashtra.gov.in.`,
-    },
-    {
-      q: `What amenities are provided in the project?`,
-      a: `The project features over 35+ lifestyle amenities including a Swimming Pool, Grand Clubhouse, Gymnasium, Landscaped Podium Gardens, Kids Play Area, Jogging Track, Yoga Deck, and 24x7 Multi-tier Security.`,
-    },
-  ];
-
-  const faqs = Array.isArray(data) && data.length > 0 ? data : defaultFaqs;
+export default function FaqSection({ data, projectTitle = 'Arban City Sector 0' }) {
+  const faqs = Array.isArray(data) ? data : [];
+  if (faqs.length === 0) return null;
   const [openIdx, setOpenIdx] = useState(0);
 
   const toggle = (idx) => {

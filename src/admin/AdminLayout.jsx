@@ -45,6 +45,7 @@ import FaqSettings from './FaqSettings';
 import LeadsManager from './LeadsManager';
 import AdminLogin from './AdminLogin';
 import PrivacyPolicySettings from './PrivacyPolicySettings';
+import FormConsentSettings from './FormConsentSettings';
 import AdminProfileSettings from './AdminProfileSettings';
 import { fetchAllData, fetchLeads } from './api';
 
@@ -94,8 +95,9 @@ export default function AdminLayout({ onBackToSite }) {
 
   useEffect(() => {
     if (!isAuthenticated) return undefined;
-    const timer = window.setTimeout(() => loadData(), 0);
-    return () => window.clearTimeout(timer);
+    loadData();
+    const interval = setInterval(() => loadData(), 20000);
+    return () => clearInterval(interval);
   }, [isAuthenticated]);
 
   const handleLoginSuccess = (user) => {
@@ -132,8 +134,10 @@ export default function AdminLayout({ onBackToSite }) {
       items: [
         { id: 'header', label: 'Header & Logo', icon: <Sliders size={18} /> },
         { id: 'meta', label: 'SEO & Meta Tags', icon: <Globe size={18} /> },
+        { id: 'consent', label: 'Form Consent Editor', icon: <FileText size={18} /> },
         { id: 'developer', label: 'Developer & RERA', icon: <ShieldCheck size={18} /> },
         { id: 'privacy', label: 'Privacy Policy', icon: <FileText size={18} /> },
+        
       ],
     },
     {
@@ -448,6 +452,9 @@ export default function AdminLayout({ onBackToSite }) {
                 )}
                 {activeTab === 'developer' && (
                   <DeveloperSettings data={data?.developer} onRefresh={loadData} />
+                )}
+                {activeTab === 'consent' && (
+                  <FormConsentSettings onRefresh={loadData} />
                 )}
                 {activeTab === 'privacy' && (
                   <PrivacyPolicySettings onRefresh={loadData} />

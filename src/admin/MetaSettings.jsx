@@ -28,6 +28,8 @@ export default function MetaSettings({ data, onRefresh }) {
       meta_description:
         'Arban City Sector 0 at Airoli, Navi Mumbai by Delta Tricity. Spread across 5.5 acres featuring 3 high-rise towers with 35+ storeys offering luxury 1, 2 & 3 BHK residences starting at 89 Lakhs.',
       meta_keywords: 'arban city, airoli flats, luxury apartments navi mumbai, delta tricity',
+      primary_keywords: 'luxury flats in airoli',
+      secondary_keywords: 'arban city, aveon city, luxury residences, flats in navi mumbai',
       author: 'Delta Tricity',
       canonical_url: 'https://arban-city.com/',
       robots: 'index, follow',
@@ -41,10 +43,12 @@ export default function MetaSettings({ data, onRefresh }) {
       og_type: 'website',
       og_locale: 'en_US',
       twitter_card: 'summary_large_image',
+      twitter_url: 'https://arban-city.com/',
       twitter_title: 'Arban City Sector 0 | Luxury 1, 2 & 3 BHK in Airoli',
       twitter_description:
         'Arban City Sector 0 at Airoli, Navi Mumbai by Delta Tricity. Luxury 1, 2 & 3 BHK residences starting at 89 Lakhs.',
       twitter_image: '',
+      twitter_image_alt: 'Luxury apartments and towers at Aveon City Sector Zero',
       twitter_site: '@ArbanCity',
       google_verification: '',
       bing_verification: '',
@@ -53,6 +57,7 @@ export default function MetaSettings({ data, onRefresh }) {
       social_facebook: '',
       social_instagram: '',
       social_linkedin: '',
+      schema_markup: '',
       header_scripts: '',
     }
   );
@@ -106,7 +111,8 @@ export default function MetaSettings({ data, onRefresh }) {
     { id: 'twitter', label: '3. Twitter / X Card', icon: <TwitterIcon size={16} /> },
     { id: 'verification', label: '4. Webmaster Verification', icon: <ShieldCheck size={16} /> },
     { id: 'social', label: '5. Social Profiles', icon: <LinkIcon size={16} /> },
-    { id: 'scripts', label: '6. Header Scripts / GTM', icon: <Code size={16} /> },
+    { id: 'schema', label: '6. Schema Markup (JSON-LD)', icon: <Code size={16} /> },
+    { id: 'scripts', label: '7. Header Scripts / GTM', icon: <Code size={16} /> },
   ];
 
   return (
@@ -136,11 +142,10 @@ export default function MetaSettings({ data, onRefresh }) {
               key={tab.id}
               type="button"
               onClick={() => setActiveSubTab(tab.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer ${
-                activeSubTab === tab.id
-                  ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
-                  : 'bg-slate-100/90 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-              }`}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer ${activeSubTab === tab.id
+                ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-900'
+                : 'bg-slate-100/90 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -184,9 +189,8 @@ export default function MetaSettings({ data, onRefresh }) {
                   <span>META TITLE</span>
                   <span className="text-slate-400 font-mono text-[10px]">&lt;TITLE&gt;</span>
                 </label>
-                <span className={`text-[11px] font-semibold ${
-                  (formData.meta_title?.length || 0) > 60 ? 'text-amber-600' : 'text-slate-400'
-                }`}>
+                <span className={`text-[11px] font-semibold ${(formData.meta_title?.length || 0) > 60 ? 'text-amber-600' : 'text-slate-400'
+                  }`}>
                   {formData.meta_title?.length || 0} / 60 characters
                 </span>
               </div>
@@ -206,9 +210,8 @@ export default function MetaSettings({ data, onRefresh }) {
                   <span>META DESCRIPTION</span>
                   <span className="text-slate-400 font-mono text-[10px]">&lt;META NAME="DESCRIPTION"&gt;</span>
                 </label>
-                <span className={`text-[11px] font-semibold ${
-                  (formData.meta_description?.length || 0) > 160 ? 'text-amber-600' : 'text-slate-400'
-                }`}>
+                <span className={`text-[11px] font-semibold ${(formData.meta_description?.length || 0) > 160 ? 'text-amber-600' : 'text-slate-400'
+                  }`}>
                   {formData.meta_description?.length || 0} / 160 characters
                 </span>
               </div>
@@ -233,6 +236,34 @@ export default function MetaSettings({ data, onRefresh }) {
                 placeholder="arban city, airoli flats, luxury apartments navi mumbai, delta tricity"
                 className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Primary Keywords &lt;meta name="primary-keywords"&gt;
+                </label>
+                <input
+                  type="text"
+                  value={formData.primary_keywords || ''}
+                  onChange={(e) => handleChange('primary_keywords', e.target.value)}
+                  placeholder="e.g. online travel agency or luxury flats airoli"
+                  className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Secondary Keywords &lt;meta name="secondary-keywords"&gt;
+                </label>
+                <input
+                  type="text"
+                  value={formData.secondary_keywords || ''}
+                  onChange={(e) => handleChange('secondary_keywords', e.target.value)}
+                  placeholder="e.g. aveon city, luxury homes, flats, apartments"
+                  className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -263,44 +294,6 @@ export default function MetaSettings({ data, onRefresh }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Search Robots Directive &lt;meta name="robots"&gt;
-                </label>
-                <select
-                  value={formData.robots || 'index, follow'}
-                  onChange={(e) => handleChange('robots', e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                >
-                  <option value="index, follow">index, follow (Allow Google indexing &amp; link crawling)</option>
-                  <option value="noindex, follow">noindex, follow (Do not show on Google, crawl links)</option>
-                  <option value="index, nofollow">index, nofollow (Index on Google, don't follow links)</option>
-                  <option value="noindex, nofollow">noindex, nofollow (Block all crawlers completely)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Browser Theme Color &lt;meta name="theme-color"&gt;
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={formData.theme_color || '#0f172a'}
-                    onChange={(e) => handleChange('theme_color', e.target.value)}
-                    className="w-10 h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.theme_color || '#0f172a'}
-                    onChange={(e) => handleChange('theme_color', e.target.value)}
-                    placeholder="#0f172a"
-                    className="flex-1 px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                  />
-                </div>
-              </div>
-            </div>
 
             {/* Google SERP Live Simulation */}
             <div className="mt-6 pt-4 border-t border-slate-100">
@@ -519,7 +512,7 @@ export default function MetaSettings({ data, onRefresh }) {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Twitter Card Image URL &lt;meta name="twitter:image"&gt;
+                Twitter Card Image URL &lt;meta property="twitter:image"&gt;
               </label>
               <div className="flex gap-2">
                 <input
@@ -540,6 +533,19 @@ export default function MetaSettings({ data, onRefresh }) {
                   />
                 </label>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Twitter Image Alt Text &lt;meta name="twitter:image:alt"&gt;
+              </label>
+              <input
+                type="text"
+                value={formData.twitter_image_alt || ''}
+                onChange={(e) => handleChange('twitter_image_alt', e.target.value)}
+                placeholder="Description of the image for accessibility & search bots"
+                className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+              />
             </div>
           </div>
         )}
@@ -653,7 +659,66 @@ export default function MetaSettings({ data, onRefresh }) {
           </div>
         )}
 
-        {/* TAB 6: HEADER SCRIPTS & GTM */}
+        {/* TAB 6: DYNAMIC SCHEMA MARKUP (JSON-LD) */}
+        {activeSubTab === 'schema' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900">
+                Dynamic Schema Markup (JSON-LD / Structured Data)
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Paste your custom Schema.org structured data (e.g., RealEstateAgent, TravelAgency, Organization, LocalBusiness, FAQPage). It will dynamically inject directly into the website's &lt;head&gt; tag.
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Schema Markup Code (&lt;script type="application/ld+json"&gt;...&lt;/script&gt; or Raw JSON)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sample = `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Arban City Sector 0",
+  "url": "https://arban-city.com",
+  "telephone": "+91-8100000000",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Sector Zero, Airoli",
+    "addressLocality": "Navi Mumbai",
+    "addressRegion": "Maharashtra",
+    "postalCode": "400708",
+    "addressCountry": "IN"
+  }
+}
+</script>`;
+                    handleChange('schema_markup', sample);
+                  }}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
+                >
+                  Insert Sample Real Estate Schema
+                </button>
+              </div>
+
+              <textarea
+                rows={14}
+                value={formData.schema_markup || ''}
+                onChange={(e) => handleChange('schema_markup', e.target.value)}
+                placeholder={`<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Organization",\n  "name": "Your Company",\n  "url": "https://yourdomain.com"\n}\n</script>`}
+                className="w-full px-4 py-3 text-xs sm:text-sm bg-slate-900 text-emerald-400 rounded-xl font-mono focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed"
+              />
+              <p className="text-[11px] text-slate-400 mt-2">
+                Note: You can paste the code with or without the &lt;script&gt; tags. The system dynamically validates and formats it inside &lt;head&gt; automatically.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: HEADER SCRIPTS & GTM */}
         {activeSubTab === 'scripts' && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5">
             <h3 className="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
@@ -679,10 +744,7 @@ export default function MetaSettings({ data, onRefresh }) {
         )}
 
         {/* Save Button */}
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-slate-400 font-medium">
-            All meta tags and verification codes are dynamically stored in MySQL
-          </span>
+        <div className="flex items-center justify-end pt-2">
           <button
             type="submit"
             disabled={saving}

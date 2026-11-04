@@ -149,7 +149,7 @@ export default function BottomGrid({ data }) {
             src={constructionPhotos[currentPhoto % constructionPhotos.length]}
             alt={constructionTitle}
             className="w-full h-full object-cover"
-          />
+           loading="lazy" decoding="async"/>
 
           {constructionPhotos.length > 1 && (
             <>

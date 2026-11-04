@@ -4,21 +4,36 @@ import { Save, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
 
 export default function HeroSettings({ data, onRefresh }) {
+  // If data.banners is empty or missing, provide default banners so first image is never blank
+  const initialBanners = Array.isArray(data?.banners) && data.banners.length > 0
+    ? data.banners.map((b) => (typeof b === 'string' ? { img: b, title: '', sub: '' } : b))
+    : [
+        { img: data?.hero_image || '/assets/banner1_min.webp', title: data?.title || 'Arban City', sub: 'Elevation' },
+        { img: '/assets/banner2_min.webp', title: 'Grand Towers', sub: 'Architecture' },
+        { img: '/assets/banner3_min.webp', title: 'Luxury Living', sub: 'Amenities' },
+      ];
+
   const [formData, setFormData] = useState({
-    title: data?.title || 'Arban City Sector 0',
-    location: data?.location || 'At Airoli, Navi Mumbai',
-    developer: data?.developer || 'Delta Tricity',
-    area_val: data?.area_val || data?.areaValue || '5.5 Acre',
-    area_lbl: data?.area_lbl || data?.areaLabel || 'Area',
-    towers_val: data?.towers_val || data?.towersValue || '3',
-    towers_lbl: data?.towers_lbl || data?.towersLabel || 'Towers',
-    storey_val: data?.storey_val || data?.storeyValue || '35+',
-    storey_lbl: data?.storey_lbl || data?.storeyLabel || 'Storey',
-    config_text: data?.config_text || data?.configText || '1, 2 & 3 BHK residences',
-    price_text: data?.price_text || data?.priceText || '₹89 Lakhs*',
-    price_subtext: data?.price_subtext || data?.priceSubtext || 'onwards',
-    hero_image: data?.hero_image || '',
-    banners: Array.isArray(data?.banners) ? data.banners : [],
+    title: data?.title ?? '',
+    location: data?.location ?? '',
+    developer: data?.developer ?? '',
+    area_val: data?.area_val ?? data?.areaValue ?? '',
+    area_lbl: data?.area_lbl ?? data?.areaLabel ?? '',
+    towers_val: data?.towers_val ?? data?.towersValue ?? '',
+    towers_lbl: data?.towers_lbl ?? data?.towersLabel ?? '',
+    storey_val: data?.storey_val ?? data?.storeyValue ?? '',
+    storey_lbl: data?.storey_lbl ?? data?.storeyLabel ?? '',
+    config_text: data?.config_text ?? data?.configText ?? '',
+    price_text: data?.price_text ?? data?.priceText ?? '',
+    price_subtext: data?.price_subtext ?? data?.priceSubtext ?? '',
+    hero_image: data?.hero_image || initialBanners[0]?.img || '',
+    hero_image_alt: data?.hero_image_alt ?? '',
+    hero_image_title: data?.hero_image_title ?? '',
+    hero_image_loading: data?.hero_image_loading ?? 'eager',
+    hero_image_decoding: data?.hero_image_decoding ?? 'sync',
+    hero_image_width: data?.hero_image_width ?? '',
+    hero_image_height: data?.hero_image_height ?? '',
+    banners: initialBanners,
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -178,8 +193,21 @@ export default function HeroSettings({ data, onRefresh }) {
         <div>
           <FileUpload
             label="Fallback Hero Background (used when no slides are configured)"
+            category="hero"
             value={formData.hero_image || ''}
-            onChange={(url) => setFormData({ ...formData, hero_image: url })}
+            onChange={(url) => setFormData((prev) => ({ ...prev, hero_image: url }))}
+            alt={formData.hero_image_alt || ''}
+            onAltChange={(val) => setFormData((prev) => ({ ...prev, hero_image_alt: val }))}
+            title={formData.hero_image_title || ''}
+            onTitleChange={(val) => setFormData((prev) => ({ ...prev, hero_image_title: val }))}
+            loading={formData.hero_image_loading || 'eager'}
+            onLoadingChange={(val) => setFormData((prev) => ({ ...prev, hero_image_loading: val }))}
+            decoding={formData.hero_image_decoding || 'sync'}
+            onDecodingChange={(val) => setFormData((prev) => ({ ...prev, hero_image_decoding: val }))}
+            width={formData.hero_image_width || ''}
+            onWidthChange={(val) => setFormData((prev) => ({ ...prev, hero_image_width: val }))}
+            height={formData.hero_image_height || ''}
+            onHeightChange={(val) => setFormData((prev) => ({ ...prev, hero_image_height: val }))}
           />
         </div>
 
@@ -194,24 +222,34 @@ export default function HeroSettings({ data, onRefresh }) {
             </button>
           </div>
           {formData.banners.map((banner, index) => (
-            <div key={index} className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
-              <div className="flex items-center justify-between md:col-span-2">
+            <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600">Slide {index + 1}</span>
                 <button type="button" onClick={() => removeBanner(index)} aria-label={`Remove slide ${index + 1}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50 cursor-pointer">
                   <Trash2 size={16} />
                 </button>
               </div>
-              <FileUpload label="Slide Image" value={banner.img || banner.image_url || ''} onChange={(url) => updateBanner(index, 'img', url)} />
-              <div className="space-y-3">
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">Caption</label>
-                  <input value={banner.title || ''} onChange={(e) => updateBanner(index, 'title', e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">Subtitle</label>
-                  <input value={banner.sub || ''} onChange={(e) => updateBanner(index, 'sub', e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
-                </div>
-              </div>
+              <FileUpload
+                label="Slide Image"
+                category="hero"
+                value={banner.img || banner.image_url || ''}
+                onChange={(url) => updateBanner(index, 'img', url)}
+                alt={banner.sub || banner.alt || ''}
+                onAltChange={(val) => {
+                  updateBanner(index, 'sub', val);
+                  updateBanner(index, 'alt', val);
+                }}
+                title={banner.title || ''}
+                onTitleChange={(val) => updateBanner(index, 'title', val)}
+                loading={banner.loading || (index === 0 ? 'eager' : 'lazy')}
+                onLoadingChange={(val) => updateBanner(index, 'loading', val)}
+                decoding={banner.decoding || 'async'}
+                onDecodingChange={(val) => updateBanner(index, 'decoding', val)}
+                width={banner.width || ''}
+                onWidthChange={(val) => updateBanner(index, 'width', val)}
+                height={banner.height || ''}
+                onHeightChange={(val) => updateBanner(index, 'height', val)}
+              />
             </div>
           ))}
         </div>
